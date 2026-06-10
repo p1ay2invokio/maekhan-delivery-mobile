@@ -86,7 +86,7 @@ export default function AdminOrdersScreen() {
     switch (status) {
       case 'completed': return '#10b981';
       case 'cancelled': return '#ef4444';
-      case 'pending': return '#f59e0b';
+      case 'pending': return '#22c55e';
       default: return '#64748b';
     }
   };
@@ -176,7 +176,7 @@ export default function AdminOrdersScreen() {
 
         {loading ? (
           <View style={styles.emptyContainer}>
-            <ActivityIndicator size="large" color="#f97316" />
+            <ActivityIndicator size="large" color="#22c55e" />
           </View>
         ) : (
           <FlatList
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   },
   pointsEarned: {
     fontSize: 12,
-    color: '#f59e0b',
+    color: '#22c55e',
     fontWeight: '600',
   },
   actionButtons: {

@@ -155,7 +155,7 @@ export default function ProfileScreen() {
             <MenuButton 
               icon="headset" 
               label="ติดต่อ support" 
-              color="#f59e0b" 
+              color="#22c55e" 
               onPress={() => Alert.alert('ติดต่อเจ้าหน้าที่', 'กรุณาติดต่อผ่าน Line: @membergrocery')}
             />
             <MenuButton 
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.four,
     paddingVertical: Spacing.four,
     paddingHorizontal: Spacing.six,
-    backgroundColor: 'rgba(245, 158, 11, 0.08)', // Tinted Amber like Admin statBox
+    backgroundColor: 'rgba(34, 197, 94, 0.08)', // Tinted Amber like Admin statBox
     borderRadius: 20,
     flexDirection: 'column',
     alignItems: 'center',
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   pointsCardLabel: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#f59e0b',
+    color: '#22c55e',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   pointsUnit: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#f59e0b',
+    color: '#22c55e',
   },
   menuContainer: {
     paddingHorizontal: Spacing.four,

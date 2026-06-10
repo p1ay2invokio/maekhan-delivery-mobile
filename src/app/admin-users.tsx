@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#f97316',
+    backgroundColor: '#22c55e',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -173,11 +173,11 @@ const styles = StyleSheet.create({
   pointsText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#f59e0b',
+    color: '#22c55e',
   },
   pointsLabel: {
     fontSize: 10,
-    color: '#fbbf24',
+    color: '#4ade80',
     fontWeight: '600',
   },
   emptyContainer: {

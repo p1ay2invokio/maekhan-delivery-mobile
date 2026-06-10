@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   saveButton: {
-    backgroundColor: '#f97316',
+    backgroundColor: '#22c55e',
     padding: Spacing.four,
     borderRadius: 16,
     alignItems: 'center',

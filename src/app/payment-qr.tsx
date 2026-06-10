@@ -152,7 +152,7 @@ export default function PaymentQrScreen() {
               <SymbolView 
                 name={timeLeft < 60 ? "exclamationmark.circle.fill" : "clock.fill"} 
                 size={24} 
-                tintColor={timeLeft < 60 ? '#ef4444' : '#f97316'} 
+                tintColor={timeLeft < 60 ? '#ef4444' : '#22c55e'} 
               />
               <View style={styles.timerContent}>
                 <ThemedText style={[styles.timerLabel, timeLeft < 60 && { color: '#ef4444' }]}>
@@ -187,7 +187,7 @@ export default function PaymentQrScreen() {
           </ThemedView>
 
           <Pressable 
-            style={({ pressed }) => [styles.confirmButton, { backgroundColor: '#f97316', opacity: pressed ? 0.8 : 1 }]}
+            style={({ pressed }) => [styles.confirmButton, { backgroundColor: '#22c55e', opacity: pressed ? 0.8 : 1 }]}
             onPress={handleConfirmPayment}
           >
             <ThemedText style={styles.confirmText}>ฉันชำระเงินเรียบร้อยแล้ว</ThemedText>
@@ -271,12 +271,12 @@ const styles = StyleSheet.create({
   timerLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#f97316',
+    color: '#22c55e',
   },
   timerValue: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#f97316',
+    color: '#22c55e',
     fontVariant: ['tabular-nums'],
     marginTop: -2,
   },
@@ -287,12 +287,12 @@ const styles = StyleSheet.create({
   amountText: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#f97316',
+    color: '#22c55e',
     lineHeight: 36
   },
   pointsText: {
     fontSize: 16,
-    color: '#f59e0b',
+    color: '#22c55e',
     fontWeight: 'bold',
   },
   instructionBox: {

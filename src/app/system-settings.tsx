@@ -61,7 +61,7 @@ export default function SystemSettingsScreen() {
               <Switch
                 value={autoConfirmOrders}
                 onValueChange={setAutoConfirmOrders}
-                trackColor={{ false: '#767577', true: '#f97316' }}
+                trackColor={{ false: '#767577', true: '#22c55e' }}
               />
             </View>
           </View>
@@ -79,7 +79,7 @@ export default function SystemSettingsScreen() {
               <Switch
                 value={notificationsEnabled}
                 onValueChange={setNotificationsEnabled}
-                trackColor={{ false: '#767577', true: '#f59e0b' }}
+                trackColor={{ false: '#767577', true: '#22c55e' }}
               />
             </View>
 
@@ -93,7 +93,7 @@ export default function SystemSettingsScreen() {
               <Switch
                 value={darkMode}
                 onValueChange={setDarkMode}
-                trackColor={{ false: '#767577', true: '#f97316' }}
+                trackColor={{ false: '#767577', true: '#22c55e' }}
               />
             </View>
           </View>

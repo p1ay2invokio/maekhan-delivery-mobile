@@ -90,8 +90,8 @@ export default function OrderHistoryScreen() {
     if (paymentStatus === 'unpaid') return '#ef4444'; // Red for unpaid
     switch (status) {
       case 'completed': return '#10b981'; // Green
-      case 'pending': return '#22c55e';   // Green (formerly orange #f97316)
-      default: return '#f59e0b';          // Orange
+      case 'pending': return '#22c55e';   // Green (formerly orange #22c55e)
+      default: return '#22c55e';          // Orange
     }
   };
 
@@ -326,11 +326,11 @@ const styles = StyleSheet.create({
   totalPrice: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#f97316',
+    color: '#22c55e',
   },
   pointsEarned: {
     fontSize: 12,
-    color: '#f59e0b',
+    color: '#22c55e',
     fontWeight: '600',
   },
   emptyContainer: {

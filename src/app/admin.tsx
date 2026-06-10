@@ -11,9 +11,9 @@ import { useTheme } from '@/hooks/use-theme';
 const API_URL = 'http://192.168.1.34:3001';
 
 const ADMIN_ACTIONS = [
-  { id: '1', title: 'จัดการสินค้า', icon: 'cart.badge.plus', color: '#f97316', route: '/admin-products' },
+  { id: '1', title: 'จัดการสินค้า', icon: 'cart.badge.plus', color: '#22c55e', route: '/admin-products' },
   { id: '2', title: 'ประวัติการสั่งซื้อทั้งหมด', icon: 'doc.text.magnifyingglass', color: '#10b981', route: '/admin-orders' },
-  { id: '3', title: 'จัดการสมาชิก', icon: 'person.2.fill', color: '#f59e0b', route: '/admin-users' },
+  { id: '3', title: 'จัดการสมาชิก', icon: 'person.2.fill', color: '#22c55e', route: '/admin-users' },
   { id: '4', title: 'ตั้งค่าระบบ', icon: 'gearshape.2.fill', color: '#64748b', route: '/system-settings' },
 ];
 
@@ -75,11 +75,11 @@ export default function AdminScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* ── Stats Summary ── */}
           {loading ? (
-            <ActivityIndicator size="small" color="#f97316" />
+            <ActivityIndicator size="small" color="#22c55e" />
           ) : (
             <View style={styles.statsRow}>
               <View style={[styles.statBox, { backgroundColor: 'rgba(60, 135, 247, 0.1)' }]}>
-                <ThemedText style={{ color: '#f97316', fontWeight: 'bold' }}>ยอดขายวันนี้</ThemedText>
+                <ThemedText style={{ color: '#22c55e', fontWeight: 'bold' }}>ยอดขายวันนี้</ThemedText>
                 <ThemedText type="subtitle">฿{(stats?.dailySales || 0).toLocaleString()}</ThemedText>
               </View>
               <View style={[styles.statBox, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>

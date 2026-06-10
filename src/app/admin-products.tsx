@@ -132,7 +132,7 @@ export default function ManageProductsScreen() {
           </View>
 
           <Pressable 
-            style={({ pressed }) => [styles.submitButton, { backgroundColor: '#f97316', opacity: (pressed || loading) ? 0.8 : 1 }]}
+            style={({ pressed }) => [styles.submitButton, { backgroundColor: '#22c55e', opacity: (pressed || loading) ? 0.8 : 1 }]}
             onPress={handleAddProduct}
             disabled={loading}
           >

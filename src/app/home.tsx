@@ -47,7 +47,7 @@ export default function HomeScreen() {
         <Pressable
           style={({ pressed }) => [
             styles.addToCartButton,
-            { backgroundColor: '#f97316', opacity: pressed ? 0.8 : 1 },
+            { backgroundColor: '#22c55e', opacity: pressed ? 0.8 : 1 },
           ]}
           onPress={() => addToCart(item)}
         >
@@ -157,22 +157,22 @@ const styles = StyleSheet.create({
   pointsPillHeader: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    backgroundColor: 'rgba(245,158,11,0.12)',
+    backgroundColor: 'rgba(34,197,94,0.12)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(245,158,11,0.25)',
+    borderColor: 'rgba(34,197,94,0.25)',
   },
   pointsPillValue: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#f59e0b',
+    color: '#22c55e',
   },
   pointsPillUnit: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#fbbf24',
+    color: '#4ade80',
   },
 
   // ── Categories ──
@@ -223,12 +223,12 @@ const styles = StyleSheet.create({
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   productPrice: { fontSize: 18, color: '#22c55e', fontWeight: 'bold' },
   pointsPill: {
-    backgroundColor: 'rgba(245,158,11,0.12)',
+    backgroundColor: 'rgba(34,197,94,0.12)',
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 10,
   },
-  productPoints: { fontSize: 18, color: '#f59e0b', fontWeight: 'bold' },
+  productPoints: { fontSize: 18, color: '#22c55e', fontWeight: 'bold' },
   addToCartButton: {
     paddingVertical: Spacing.two,
     borderRadius: Spacing.two,
@@ -243,13 +243,13 @@ const styles = StyleSheet.create({
     bottom: 0,          // ชิดขอบล่างสุด
     left: 0,
     right: 0,
-    backgroundColor: '#f97316',
+    backgroundColor: '#22c55e',
     borderRadius: 26,    // ไม่โค้ง
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
     paddingBottom: 28,  // เผื่อ home indicator
     elevation: 8,
-    shadowColor: '#f97316',
+    shadowColor: '#22c55e',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,

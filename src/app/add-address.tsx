@@ -242,9 +242,9 @@ export default function AddAddressScreen() {
               style={({ pressed }) => [styles.mapPickerButton, { opacity: pressed ? 0.8 : 1 }]}
               onPress={handleOpenMap}
             >
-              <SymbolView name="map.fill" size={20} tintColor="#f97316" />
+              <SymbolView name="map.fill" size={20} tintColor="#22c55e" />
               <ThemedText style={styles.mapPickerText}>เลือกตำแหน่งจากแผนที่ Google Maps</ThemedText>
-              {isLoadingLocation && <ActivityIndicator size="small" color="#f97316" />}
+              {isLoadingLocation && <ActivityIndicator size="small" color="#22c55e" />}
             </Pressable>
 
             <View style={styles.inputGroup}>
@@ -373,7 +373,7 @@ export default function AddAddressScreen() {
               <SymbolView 
                 name={isWithinRange ? "location.fill" : "exclamationmark.triangle.fill"} 
                 size={18} 
-                tintColor={isWithinRange ? "#f97316" : "#ef4444"} 
+                tintColor={isWithinRange ? "#22c55e" : "#ef4444"} 
               />
               <ThemedText style={[styles.cardAddressText, !isWithinRange && { color: '#ef4444' }]} numberOfLines={2}>
                 {isWithinRange ? (currentAddress || 'กำลังค้นหาตำแหน่ง...') : 'ขออภัย ตำแหน่งนี้ไม่อยู่ในพื้นที่จัดส่ง'}
@@ -383,7 +383,7 @@ export default function AddAddressScreen() {
             <Pressable 
               style={({ pressed }) => [
                 styles.mapConfirmButton, 
-                { backgroundColor: isWithinRange ? '#f97316' : '#94a3b8', opacity: (pressed || !isWithinRange) ? 0.9 : 1 }
+                { backgroundColor: isWithinRange ? '#22c55e' : '#94a3b8', opacity: (pressed || !isWithinRange) ? 0.9 : 1 }
               ]}
               onPress={handleSelectLocation}
               disabled={!isWithinRange}
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: '600',
-    color: '#f97316',
+    color: '#22c55e',
   },
   inputGroup: {
     gap: Spacing.two,
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   saveButton: {
-    backgroundColor: '#f97316',
+    backgroundColor: '#22c55e',
     padding: Spacing.four,
     borderRadius: 16,
     alignItems: 'center',
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   mapConfirmButton: {
-    backgroundColor: '#f97316',
+    backgroundColor: '#22c55e',
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: 'center',

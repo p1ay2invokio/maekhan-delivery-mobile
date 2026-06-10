@@ -185,7 +185,7 @@ export default function CartScreen() {
                       ]}
                     >
                       <View style={styles.addressIconContainer}>
-                        <SymbolView name="mappin.circle.fill" size={24} tintColor="#f97316" />
+                        <SymbolView name="mappin.circle.fill" size={24} tintColor="#22c55e" />
                       </View>
                       
                       <View style={styles.addressInfo}>
@@ -200,9 +200,9 @@ export default function CartScreen() {
                       <SymbolView name="chevron.right" size={16} tintColor="#94a3b8" />
                     </Pressable>
                   ) : (
-                    <View style={[styles.addressCard, { backgroundColor: theme.backgroundElement, borderColor: 'rgba(245,158,11,0.1)' }]}>
-                      <View style={[styles.addressIconContainer, { backgroundColor: 'rgba(245,158,11,0.1)' }]}>
-                        <SymbolView name="house.fill" size={22} tintColor="#f59e0b" />
+                    <View style={[styles.addressCard, { backgroundColor: theme.backgroundElement, borderColor: 'rgba(34,197,94,0.1)' }]}>
+                      <View style={[styles.addressIconContainer, { backgroundColor: 'rgba(34,197,94,0.1)' }]}>
+                        <SymbolView name="house.fill" size={22} tintColor="#22c55e" />
                       </View>
                       
                       <View style={styles.addressInfo}>
@@ -321,12 +321,12 @@ const styles = StyleSheet.create({
   },
   productPrice: {
     fontSize: 15,
-    color: '#f97316',
+    color: '#22c55e',
     fontWeight: '700',
   },
   productPoints: {
     fontSize: 13,
-    color: '#f59e0b',
+    color: '#22c55e',
     fontWeight: '600',
   },
   quantityContainer: {
@@ -467,15 +467,15 @@ const styles = StyleSheet.create({
   summaryValueBlue: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#f97316',
+    color: '#22c55e',
   },
   summaryValueGold: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#f59e0b',
+    color: '#22c55e',
   },
   checkoutButton: {
-    backgroundColor: '#f97316',
+    backgroundColor: '#22c55e',
     paddingVertical: 15,
     borderRadius: 14,
     alignItems: 'center',
@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
   },
   emptyActionText: {
     fontSize: 14,
-    color: '#f97316',
+    color: '#22c55e',
     fontWeight: '600',
   },
 });
