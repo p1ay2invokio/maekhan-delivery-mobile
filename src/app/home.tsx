@@ -260,12 +260,14 @@ const styles = StyleSheet.create({
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 },
   productPrice: { fontSize: 16, color: '#22c55e', fontWeight: 'bold' },
   pointsPill: {
-    backgroundColor: 'rgba(34,197,94,0.12)',
+    backgroundColor: '#fffbeb',
+    borderWidth: 1,
+    borderColor: '#fcd34d',
     paddingHorizontal: 6,
     paddingVertical: 0,
     borderRadius: 6,
   },
-  productPoints: { fontSize: 14, color: '#22c55e', fontWeight: 'bold' },
+  productPoints: { fontSize: 16, color: '#f59e0b', fontWeight: 'bold' },
 
   // ── Floating Cart ──
   floatingCart: {

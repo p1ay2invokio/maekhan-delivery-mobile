@@ -126,10 +126,17 @@ export default function AddAddressScreen() {
 
         result.address_components.forEach((component: any) => {
           const types = component.types;
-          if (types.includes('sublocality_level_2') || types.includes('sublocality_level_1') || types.includes('sublocality')) {
+          
+          if (types.includes('sublocality_level_2')) {
+            // Smaller area, can be added to address prefix or sub-district if sub-district is empty
             if (!extractedSubDistrict) extractedSubDistrict = component.long_name;
           }
-          if (types.includes('locality') || types.includes('administrative_area_level_2')) {
+          if (types.includes('sublocality_level_1') || types.includes('sublocality') || (types.includes('locality') && !types.includes('administrative_area_level_2'))) {
+            // This is usually the Sub-district (Tambon/Khwaeng)
+            extractedSubDistrict = component.long_name;
+          }
+          if (types.includes('administrative_area_level_2')) {
+            // This is usually the District (Amphoe/Khet)
             extractedDistrict = component.long_name;
           }
           if (types.includes('administrative_area_level_1')) {
