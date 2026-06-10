@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
+import { TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect } from 'react';
@@ -147,9 +147,9 @@ export default function LoginScreen() {
             onPress={() => setIsRegister(!isRegister)} 
             style={styles.switchButton}
           >
-            <ThemedText type="linkPrimary">
+            <Text style={{ color: '#22c55e', fontSize: 18, fontFamily: 'Kanit-Regular' }}>
               {isRegister ? 'มีบัญชีอยู่แล้ว? เข้าสู่ระบบ' : 'ยังไม่มีบัญชี? สมัครสมาชิกที่นี่'}
-            </ThemedText>
+            </Text>
           </TouchableOpacity>
         </SafeAreaView>
       </KeyboardAvoidingView>
@@ -187,7 +187,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    padding: Spacing.four,
     borderRadius: Spacing.three,
     alignItems: 'center',
     marginTop: Spacing.two,
@@ -198,6 +197,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 18,
+    lineHeight: 20
   },
   switchButton: {
     alignItems: 'center',

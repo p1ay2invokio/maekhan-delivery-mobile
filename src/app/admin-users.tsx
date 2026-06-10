@@ -1,30 +1,38 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Pressable, View, FlatList, TextInput, ActivityIndicator } from 'react-native';
+import { StyleSheet, Pressable, View, FlatList, TextInput, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useCart } from '@/hooks/use-cart';
 
 const API_URL = 'http://192.168.1.34:3001';
-
-interface User {
-  phoneNumber: string;
-  name: string | null;
-  totalPoint: number;
-}
-
+// ... (interfaces)
 export default function AdminUsersScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { user } = useCart();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
+  useEffect(() => {
+    if (!user || user.role !== 1) {
+      router.replace('/home');
+    }
+  }, [user]);
+
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/users`);
+      if (!user?.token) return;
+
+      const response = await fetch(`${API_URL}/api/admin/users`, {
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        }
+      });
       const result = await response.json();
       if (result.status === 'success') {
         setUsers(result.data);
@@ -38,7 +46,7 @@ export default function AdminUsersScreen() {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [user]);
 
   const filteredUsers = users.filter(user => 
     (user.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) || 
@@ -47,9 +55,16 @@ export default function AdminUsersScreen() {
 
   const renderUserItem = ({ item }: { item: User }) => (
     <ThemedView style={[styles.userCard, { backgroundColor: theme.backgroundElement }]}>
-      <View style={styles.userIcon}>
-        <ThemedText style={styles.userInitial}>{(item.name || 'U')[0]}</ThemedText>
-      </View>
+      {item.profileImage ? (
+        <Image 
+          source={{ uri: `${API_URL}/public/profiles/${item.profileImage}` }} 
+          style={styles.userIcon} 
+        />
+      ) : (
+        <View style={styles.userIcon}>
+          <ThemedText style={styles.userInitial}>{(item.name || 'U')[0]}</ThemedText>
+        </View>
+      )}
       <View style={styles.userInfo}>
         <ThemedText style={styles.userName}>{item.name || 'ไม่มีชื่อ'}</ThemedText>
         <ThemedText themeColor="textSecondary" style={styles.userPhone}>{item.phoneNumber}</ThemedText>

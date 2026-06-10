@@ -55,6 +55,7 @@ export interface User {
   pointDl: number; 
   usePoint: number; 
   totalPoint?: number;
+  role?: number;
   token?: string; 
   address?: string;
   subDistrict?: string;
@@ -269,6 +270,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `${API_URL}/api/products`);
+        if (user?.token) {
+          xhr.setRequestHeader('Authorization', `Bearer ${user.token}`);
+        }
         xhr.setRequestHeader('Accept', 'application/json');
         
         xhr.onload = () => {
@@ -325,7 +329,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
   const userPoints = user?.totalPoint || 0;
 
-  const checkout = async (deliveryMethod: 'pickup' | 'delivery') => {
+  const checkout = async (deliveryMethod: 'pickup' | 'delivery', paymentMethod: 'qr' | 'cod') => {
     if (!user || !user.token) {
       console.log('Checkout aborted: No user or token');
       return { success: false, message: 'กรุณาเข้าสู่ระบบ' };
@@ -336,6 +340,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         totalCash,
         totalPoints,
         deliveryMethod,
+        paymentMethod,
         items: cart.map(item => ({
           id: item.id,
           name: item.name,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Pressable, View, FlatList, ActivityIndicator } from 'react-native';
+import { StyleSheet, Pressable, View, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
@@ -26,6 +26,7 @@ interface Order {
   status: string;
   paymentStatus: string;
   deliveryMethod: string;
+  paymentMethod: string;
   items: OrderItem[];
 }
 
@@ -66,9 +67,9 @@ export default function OrderHistoryScreen() {
     if (activeFilter === 'all') {
       setFilteredOrders(orders);
     } else if (activeFilter === 'unpaid') {
-      setFilteredOrders(orders.filter(o => o.paymentStatus === 'unpaid'));
+      setFilteredOrders(orders.filter(o => o.paymentStatus === 'unpaid' && o.paymentMethod !== 'cod'));
     } else if (activeFilter === 'processing') {
-      setFilteredOrders(orders.filter(o => o.paymentStatus === 'paid' && o.status === 'pending'));
+      setFilteredOrders(orders.filter(o => (o.paymentStatus === 'paid' || o.paymentMethod === 'cod') && o.status === 'pending'));
     } else if (activeFilter === 'completed') {
       setFilteredOrders(orders.filter(o => o.status === 'completed'));
     }
@@ -85,29 +86,64 @@ export default function OrderHistoryScreen() {
     });
   };
 
-  const getStatusColor = (status: string, paymentStatus: string) => {
-    if (status === 'cancelled') return '#64748b'; // Gray
-    if (paymentStatus === 'unpaid') return '#ef4444'; // Red for unpaid
-    switch (status) {
+  const cancelOrder = async (orderId: string) => {
+    if (!user?.token) return;
+    
+    Alert.alert(
+      'ยกเลิกรายการ',
+      'คุณต้องการยกเลิกรายการสั่งซื้อนี้ใช่หรือไม่?',
+      [
+        { text: 'ไม่ใช่', style: 'cancel' },
+        {
+          text: 'ใช่, ยกเลิก',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await fetch(`${API_URL}/api/orders/${orderId}/cancel`, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${user.token}`
+                }
+              });
+              const result = await response.json();
+              if (result.status === 'success') {
+                fetchOrders(); // Refresh list
+              } else {
+                Alert.alert('ผิดพลาด', result.message || 'ไม่สามารถยกเลิกได้');
+              }
+            } catch (error) {
+              console.error('Cancel order failed', error);
+              Alert.alert('ผิดพลาด', 'เกิดข้อผิดพลาดในการเชื่อมต่อ');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const getStatusColor = (order: Order) => {
+    if (order.status === 'cancelled') return '#64748b'; // Gray
+    if (order.paymentStatus === 'unpaid' && order.paymentMethod !== 'cod') return '#ef4444'; // Red for unpaid (QR)
+    switch (order.status) {
       case 'completed': return '#10b981'; // Green
-      case 'pending': return '#22c55e';   // Green (formerly orange #22c55e)
-      default: return '#22c55e';          // Orange
+      case 'pending': return '#22c55e';   // Green
+      default: return '#22c55e';
     }
   };
 
-  const getStatusText = (status: string, paymentStatus: string) => {
-    if (status === 'cancelled') return 'ยกเลิกแล้ว';
-    if (paymentStatus === 'unpaid') return 'ยังไม่ชำระเงิน';
-    switch (status) {
+  const getStatusText = (order: Order) => {
+    if (order.status === 'cancelled') return 'ยกเลิกแล้ว';
+    if (order.paymentStatus === 'unpaid' && order.paymentMethod !== 'cod') return 'ยังไม่ชำระเงิน';
+    switch (order.status) {
       case 'completed': return 'สำเร็จแล้ว';
-      case 'pending': return 'รอดำเนินการรับของ';
-      default: return status;
+      case 'pending': return 'รอดำเนินการ';
+      default: return order.status;
     }
   };
 
   const renderOrderItem = ({ item }: { item: Order }) => (
     <Pressable 
-      disabled={item.paymentStatus !== 'unpaid' || item.status !== 'pending'}
+      disabled={item.paymentMethod === 'cod' || item.paymentStatus === 'paid' || item.status !== 'pending'}
       onPress={() => {
         router.push({
           pathname: '/payment-qr',
@@ -127,16 +163,23 @@ export default function OrderHistoryScreen() {
             <ThemedText style={styles.orderId}>#{item.id.slice(-6).toUpperCase()}</ThemedText>
             <ThemedText themeColor="textSecondary" style={styles.orderDate}>{formatDate(item.createdAt)}</ThemedText>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status, item.paymentStatus) + '20' }]}>
-            <ThemedText style={[styles.statusText, { color: getStatusColor(item.status, item.paymentStatus) }]}>
-              {getStatusText(item.status, item.paymentStatus)}
-            </ThemedText>
+          <View style={{ flexDirection: 'row', gap: 4 }}>
+            <View style={[styles.statusBadge, { backgroundColor: item.paymentMethod === 'cod' ? '#fef9c3' : '#e0f2fe' }]}>
+              <ThemedText style={[styles.statusText, { color: item.paymentMethod === 'cod' ? '#a16207' : '#0369a1' }]}>
+                {item.paymentMethod === 'cod' ? 'ปลายทาง' : 'QR'}
+              </ThemedText>
+            </View>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item) + '20' }]}>
+              <ThemedText style={[styles.statusText, { color: getStatusColor(item) }]}>
+                {getStatusText(item)}
+              </ThemedText>
+            </View>
           </View>
         </View>
 
         <View style={styles.paymentInfoRow}>
           <ThemedText style={[styles.paymentStatusText, { color: item.paymentStatus === 'paid' ? '#10b981' : (item.status === 'cancelled' ? '#64748b' : '#ef4444') }]}>
-            ● {item.paymentStatus === 'paid' ? 'ชำระเงินแล้ว' : (item.status === 'cancelled' ? 'หมดเวลา/ยกเลิก' : 'ค้างชำระ')}
+            ● {item.paymentStatus === 'paid' ? 'ชำระเงินแล้ว' : (item.status === 'cancelled' ? 'หมดเวลา/ยกเลิก' : (item.paymentMethod === 'cod' ? 'ชำระปลายทาง' : 'ค้างชำระ'))}
           </ThemedText>
           <ThemedText themeColor="textSecondary" style={styles.deliveryMethodText}>
             | วิธีรับสินค้า: {item.deliveryMethod === 'delivery' ? 'จัดส่ง' : 'รับเอง'}
@@ -144,9 +187,16 @@ export default function OrderHistoryScreen() {
         </View>
 
         <View style={styles.orderContent}>
-          <ThemedText style={styles.itemsList} numberOfLines={2}>
-            {item.items.map(i => `${i.name} x${i.quantity}`).join(', ')}
-          </ThemedText>
+          {item.items.map((i, index) => (
+            <View key={`${i.id}-${index}`} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
+              <ThemedText style={[styles.itemsList, { flex: 1, paddingRight: 8 }]} numberOfLines={1}>
+                {i.name} x{i.quantity}
+              </ThemedText>
+              <ThemedText style={[styles.itemsList, { color: '#334155' }]}>
+                ฿{(i.price * i.quantity).toLocaleString()}
+              </ThemedText>
+            </View>
+          ))}
         </View>
 
         <View style={styles.orderFooter}>
@@ -154,11 +204,32 @@ export default function OrderHistoryScreen() {
             <ThemedText style={styles.totalPrice}>฿{item.totalCash.toLocaleString()}</ThemedText>
             <ThemedText style={styles.pointsEarned}>ใช้ไป {item.totalPoints} P</ThemedText>
           </View>
-          {item.paymentStatus === 'unpaid' && item.status === 'pending' && (
-            <ThemedText style={{ color: '#22c55e', fontSize: 12, fontWeight: 'bold' }}>
-              แตะเพื่อชำระเงิน >
-            </ThemedText>
-          )}
+          
+          <View style={{ flexDirection: 'row', gap: Spacing.two, alignItems: 'center' }}>
+            {item.status === 'pending' && item.paymentMethod === 'cod' && (
+              <Pressable 
+                onPress={() => cancelOrder(item.id)}
+                style={styles.cancelBtn}
+              >
+                <ThemedText style={styles.cancelBtnText}>ยกเลิก</ThemedText>
+              </Pressable>
+            )}
+
+            {item.status === 'pending' && item.paymentMethod === 'qr' && item.paymentStatus === 'unpaid' && (
+              <Pressable 
+                onPress={() => cancelOrder(item.id)}
+                style={styles.cancelBtn}
+              >
+                <ThemedText style={styles.cancelBtnText}>ยกเลิก</ThemedText>
+              </Pressable>
+            )}
+            
+            {item.paymentStatus === 'unpaid' && item.status === 'pending' && item.paymentMethod !== 'cod' && (
+              <ThemedText style={{ color: '#22c55e', fontSize: 14, fontWeight: 'bold' }}>
+                ชำระเงิน >
+              </ThemedText>
+            )}
+          </View>
         </View>
       </ThemedView>
     </Pressable>
@@ -188,7 +259,7 @@ export default function OrderHistoryScreen() {
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <ThemedText style={{ fontSize: 24 }}>←</ThemedText>
           </Pressable>
-          <ThemedText type="subtitle">ประวัติการสั่งซื้อ</ThemedText>
+          <ThemedText type="subtitle" style={{ fontSize: 22 }}>ประวัติการสั่งซื้อ</ThemedText>
           <View style={{ width: 40 }} />
         </ThemedView>
 
@@ -212,7 +283,7 @@ export default function OrderHistoryScreen() {
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <ThemedText themeColor="textSecondary">ไม่พบประวัติการสั่งซื้อ</ThemedText>
+                <ThemedText themeColor="textSecondary" style={{ fontSize: 16 }}>ไม่พบประวัติการสั่งซื้อ</ThemedText>
               </View>
             }
           />
@@ -246,13 +317,13 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   filterButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: 'rgba(0,0,0,0.05)',
   },
   filterButtonText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   listContent: {
@@ -274,19 +345,19 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   orderId: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   orderDate: {
-    fontSize: 12,
+    fontSize: 14,
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 12,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   paymentInfoRow: {
@@ -296,19 +367,19 @@ const styles = StyleSheet.create({
     marginTop: -Spacing.one,
   },
   paymentStatusText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
   },
   deliveryMethodText: {
-    fontSize: 12,
+    fontSize: 14,
   },
   orderContent: {
     gap: 4,
   },
   itemsList: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#64748b',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   orderFooter: {
     flexDirection: 'row',
@@ -324,14 +395,25 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   totalPrice: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#22c55e',
   },
   pointsEarned: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#22c55e',
     fontWeight: '600',
+  },
+  cancelBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#fee2e2',
+  },
+  cancelBtnText: {
+    color: '#ef4444',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   emptyContainer: {
     flex: 1,

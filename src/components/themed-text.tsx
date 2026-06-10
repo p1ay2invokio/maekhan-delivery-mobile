@@ -1,4 +1,4 @@
-import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
+import { Platform, StyleSheet, Text, type TextProps, TextStyle } from 'react-native';
 
 import { Fonts, ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -8,22 +8,42 @@ export type ThemedTextProps = TextProps & {
   themeColor?: ThemeColor;
 };
 
+/**
+ * Helper to get the correct Kanit font family based on weight
+ */
+const getKanitFont = (weight: TextStyle['fontWeight']): string => {
+  if (Platform.OS === 'web') return 'Kanit-Regular'; // Web uses CSS font-weight
+
+  switch (weight) {
+    case '100': case 'thin': return 'Kanit-Thin';
+    case '200': return 'Kanit-ExtraLight';
+    case '300': return 'Kanit-Light';
+    case '400': case 'normal': return 'Kanit-Regular';
+    case '500': return 'Kanit-Medium';
+    case '600': return 'Kanit-SemiBold';
+    case '700': case 'bold': return 'Kanit-Bold';
+    case '800': return 'Kanit-ExtraBold';
+    case '900': return 'Kanit-Black';
+    default: return 'Kanit-Regular';
+  }
+};
+
 export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
   const theme = useTheme();
+
+  // Extract font weight from style to determine correct font family for Android/iOS
+  const flattenedStyle = StyleSheet.flatten(style);
+  const typeStyle = styles[type];
+  const weight = flattenedStyle?.fontWeight || typeStyle?.fontWeight || '400';
+  const fontFamily = flattenedStyle?.fontFamily || getKanitFont(weight as any);
 
   return (
     <Text
       style={[
         { color: theme[themeColor ?? 'text'] },
-        type === 'default' && styles.default,
-        type === 'title' && styles.title,
-        type === 'small' && styles.small,
-        type === 'smallBold' && styles.smallBold,
-        type === 'subtitle' && styles.subtitle,
-        type === 'link' && styles.link,
-        type === 'linkPrimary' && styles.linkPrimary,
-        type === 'code' && styles.code,
+        typeStyle,
         style,
+        { fontFamily }, // Ensure correct font family is applied last
       ]}
       {...rest}
     />
@@ -32,49 +52,44 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
 
 const styles = StyleSheet.create({
   small: {
-    fontFamily: Fonts.sans,
     fontSize: 14,
     lineHeight: 20,
-    fontWeight: 500,
+    fontWeight: '400',
   },
   smallBold: {
-    fontFamily: 'Kanit-Bold',
     fontSize: 14,
     lineHeight: 20,
-    fontWeight: 700,
+    fontWeight: '700',
   },
   default: {
-    fontFamily: Fonts.sans,
     fontSize: 16,
     lineHeight: 24,
-    fontWeight: 500,
+    fontWeight: '400',
   },
   title: {
-    fontFamily: Fonts.sans,
-    fontSize: 48,
-    fontWeight: 600,
-    lineHeight: 52,
+    fontSize: 32,
+    fontWeight: '700',
+    lineHeight: 40,
   },
   subtitle: {
-    fontFamily: Fonts.sans,
-    fontSize: 32,
-    lineHeight: 44,
-    fontWeight: 600,
+    fontSize: 24,
+    lineHeight: 32,
+    fontWeight: '600',
   },
   link: {
-    fontFamily: Fonts.sans,
-    lineHeight: 30,
+    lineHeight: 24,
     fontSize: 14,
+    fontWeight: '400',
   },
   linkPrimary: {
-    fontFamily: Fonts.sans,
-    lineHeight: 30,
+    lineHeight: 24,
     fontSize: 14,
-    color: '#f97316',
+    color: '#22c55e',
+    fontWeight: '500',
   },
   code: {
     fontFamily: Fonts.mono,
-    fontWeight: Platform.select({ android: 700 }) ?? 500,
+    fontWeight: '400',
     fontSize: 12,
   },
 });

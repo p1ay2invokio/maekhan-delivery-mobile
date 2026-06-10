@@ -7,6 +7,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useCart } from '@/hooks/use-cart';
 
 const API_URL = 'http://192.168.1.34:3001';
 
@@ -14,7 +15,7 @@ const ADMIN_ACTIONS = [
   { id: '1', title: 'จัดการสินค้า', icon: 'cart.badge.plus', color: '#22c55e', route: '/admin-products' },
   { id: '2', title: 'ประวัติการสั่งซื้อทั้งหมด', icon: 'doc.text.magnifyingglass', color: '#10b981', route: '/admin-orders' },
   { id: '3', title: 'จัดการสมาชิก', icon: 'person.2.fill', color: '#22c55e', route: '/admin-users' },
-  { id: '4', title: 'ตั้งค่าระบบ', icon: 'gearshape.2.fill', color: '#64748b', route: '/system-settings' },
+  // { id: '4', title: 'ตั้งค่าระบบ', icon: 'gearshape.2.fill', color: '#64748b', route: '/system-settings' },
 ];
 
 interface AdminStats {
@@ -26,12 +27,26 @@ interface AdminStats {
 export default function AdminScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { user } = useCart();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    // If user is not admin, redirect back or to home
+    if (!user || user.role !== 1) {
+      router.replace('/home');
+    }
+  }, [user]);
+
   const fetchStats = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/stats`);
+      if (!user?.token) return;
+
+      const response = await fetch(`${API_URL}/api/admin/stats`, {
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        }
+      });
       const result = await response.json();
       if (result.status === 'success') {
         setStats(result.data);

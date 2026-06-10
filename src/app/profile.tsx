@@ -1,4 +1,4 @@
-import { StyleSheet, Pressable, ScrollView, Alert, View, Platform, ActivityIndicator } from 'react-native';
+import { StyleSheet, Pressable, ScrollView, Alert, View, Platform, ActivityIndicator, Text } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -99,7 +99,7 @@ export default function ProfileScreen() {
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <SymbolView name="chevron.left" size={24} tintColor={theme.text} />
           </Pressable>
-          <ThemedText type="subtitle">โปรไฟล์</ThemedText>
+          {/* <ThemedText type="subtitle">โปรไฟล์</ThemedText> */}
           <View style={{ width: 40 }} />
         </ThemedView>
         
@@ -122,7 +122,7 @@ export default function ProfileScreen() {
                 </Pressable>
               </View>
               <ThemedText type="subtitle">{user?.name || 'คุณลูกค้า'}</ThemedText>
-              <ThemedText themeColor="textSecondary">{user?.phoneNumber || '08X-XXX-XXXX'}</ThemedText>
+              <Text style={{fontWeight: '500'}} className='mt-[-10px] text-gray-500'>{user?.phoneNumber || '08X-XXX-XXXX'}</Text>
               <ThemedText type="small" themeColor="textSecondary">{user?.email}</ThemedText>
 
               {/* ── Points Card (Same as Home) ── */}
@@ -164,12 +164,14 @@ export default function ProfileScreen() {
               color="#64748b" 
               onPress={() => router.push('/account-settings')}
             />
-            <MenuButton 
-              icon="lock.shield" 
-              label="จัดการระบบ (Admin)" 
-              color="#ef4444" 
-              onPress={() => router.push('/admin')}
-            />
+            {user?.role === 1 && (
+              <MenuButton 
+                icon="lock.shield" 
+                label="จัดการระบบ (Admin)" 
+                color="#ef4444" 
+                onPress={() => router.push('/admin')}
+              />
+            )}
           </ThemedView>
 
           <Pressable 
@@ -269,10 +271,10 @@ const styles = StyleSheet.create({
   // ── Points Card (Admin StatBox Style) ──
   pointsCard: {
     alignSelf: 'stretch',
-    marginHorizontal: Spacing.four,
+    // marginHorizontal: Spacing.four,
     paddingVertical: Spacing.four,
     paddingHorizontal: Spacing.six,
-    backgroundColor: 'rgba(34, 197, 94, 0.08)', // Tinted Amber like Admin statBox
+    backgroundColor: '#fefce8', // Tinted Amber like Admin statBox
     borderRadius: 20,
     flexDirection: 'column',
     alignItems: 'center',
@@ -282,9 +284,9 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(245, 158, 11, 0.2)',
   },
   pointsCardLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#22c55e',
+    color: '#d97706',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -302,7 +304,7 @@ const styles = StyleSheet.create({
   pointsUnit: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#22c55e',
+    color: '#d97706',
   },
   menuContainer: {
     paddingHorizontal: Spacing.four,

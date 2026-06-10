@@ -30,7 +30,13 @@ export default function HomeScreen() {
       : products.filter((p) => p.category === activeCategory);
 
   const renderItem = ({ item }: { item: Product }) => (
-    <ThemedView style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
+    <Pressable 
+      style={({ pressed }) => [
+        styles.card, 
+        { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.9 : 1 }
+      ]}
+      onPress={() => router.push(`/product/${item.id}`)}
+    >
       <Image source={{ uri: item.image }} style={styles.productImage} />
       <ThemedView style={styles.cardContent}>
         <ThemedText type="default" style={styles.productName} numberOfLines={2}>
@@ -38,23 +44,13 @@ export default function HomeScreen() {
         </ThemedText>
 
         <ThemedView style={styles.priceRow}>
-          <ThemedText style={styles.productPrice}>฿{item.price}</ThemedText>
+          <ThemedText style={styles.productPrice}>{item.price} บาท</ThemedText>
           <View style={styles.pointsPill}>
             <ThemedText style={styles.productPoints}>{item.points} P</ThemedText>
           </View>
         </ThemedView>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.addToCartButton,
-            { backgroundColor: '#22c55e', opacity: pressed ? 0.8 : 1 },
-          ]}
-          onPress={() => addToCart(item)}
-        >
-          <ThemedText style={styles.addToCartText}>+ เพิ่มลงตะกร้า</ThemedText>
-        </Pressable>
       </ThemedView>
-    </ThemedView>
+    </Pressable>
   );
 
   return (
@@ -63,9 +59,16 @@ export default function HomeScreen() {
         {/* ── Header ── */}
         <ThemedView style={[styles.header, { backgroundColor: theme.background }]}>
           <ThemedView style={styles.headerTop}>
-            <ThemedView>
-              <ThemedText type="subtitle">สวัสดีคุณ {user?.name || 'ลูกค้า'}</ThemedText>
-              <ThemedText themeColor="textSecondary">ยินดีต้อนรับสู่ร้านค้าของเรา</ThemedText>
+            <ThemedView style={styles.logoContainer}>
+              <Image 
+                source={require('../../assets/images/playstore.png')} 
+                style={styles.logo} 
+                resizeMode="contain"
+              />
+              <ThemedView style={styles.headerTextContainer}>
+                <ThemedText style={styles.greetingText}>สวัสดี {user?.name || 'ลูกค้า'}​ !</ThemedText>
+                <ThemedText style={styles.appNameText}>สะสมแต้ม 20</ThemedText>
+              </ThemedView>
             </ThemedView>
 
             <ThemedView style={styles.headerActions}>
@@ -107,15 +110,22 @@ export default function HomeScreen() {
             onPress={() => router.push('/cart')}
           >
             <View style={styles.floatingCartContent}>
+              {/* Left: icon + badge */}
               <View style={styles.floatingCartIcon}>
                 <SymbolView name="cart.fill" size={24} tintColor="white" />
                 <View style={styles.floatingBadge}>
-                  <ThemedText style={styles.floatingBadgeText}>{totalItems}</ThemedText>
+                  <ThemedText style={{color: 'white'}}>{totalItems}</ThemedText>
                 </View>
               </View>
-              <ThemedText style={styles.floatingCartText}>ดูตะกร้าสินค้า</ThemedText>
+
+              {/* Center: label */}
+              <ThemedText style={[styles.floatingCartText, { flex: 1, textAlign: 'center', marginLeft: -20, fontSize: 16 }]}>
+                ดูตะกร้าสินค้า
+              </ThemedText>
+
+              {/* Right: total */}
               <ThemedText style={styles.floatingCartTotal}>
-                ฿{totalCash.toLocaleString()}
+                {totalCash.toLocaleString()} บาท
               </ThemedText>
             </View>
           </Pressable>
@@ -140,39 +150,64 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  logo: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  headerTextContainer: {
+    justifyContent: 'center',
+  },
+  greetingText: {
+    fontSize: 17,
+    color: '#4b5563',
+    fontWeight: '500',
+    lineHeight: 26,
+  },
+  appNameText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#22c55e',
+    lineHeight: 20,
+  },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
   },
   profileImage: {
-    width: 38,
-    height: 38,
+    width: 45,
+    height: 45,
     borderRadius: 19,
-    borderWidth: 1.5,
-    borderColor: 'rgba(128,128,128,0.2)',
+    borderWidth: 2,
+    borderColor: '#4ade80',
   },
 
   // ── Points pill (header) ──
   pointsPillHeader: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    backgroundColor: 'rgba(34,197,94,0.12)',
+    backgroundColor: '#fefce8',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(34,197,94,0.25)',
+    borderWidth: 2,
+    borderColor: '#facc15',
   },
   pointsPillValue: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#22c55e',
+    color: '#f59e0b',
   },
   pointsPillUnit: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#4ade80',
+    color: '#f59e0b',
   },
 
   // ── Categories ──
@@ -213,29 +248,24 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.three,
     overflow: 'hidden',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 1, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6 },
       android: { elevation: 3 },
     }),
+    borderWidth: 1,
+    borderColor: '#f3f4f6'
   },
   productImage: { width: '100%', aspectRatio: 1, backgroundColor: '#f0f0f0' },
-  cardContent: { padding: Spacing.two, gap: Spacing.one },
-  productName: { fontSize: 13, lineHeight: 18, height: 36 },
-  priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  productPrice: { fontSize: 18, color: '#22c55e', fontWeight: 'bold' },
+  cardContent: { paddingHorizontal: 8, paddingTop: 4, paddingBottom: 8, gap: 0 },
+  productName: { fontSize: 18, lineHeight: 30, height: 28, marginBottom: 0, fontWeight: 'regular' },
+  priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 },
+  productPrice: { fontSize: 16, color: '#22c55e', fontWeight: 'bold' },
   pointsPill: {
     backgroundColor: 'rgba(34,197,94,0.12)',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 0,
+    borderRadius: 6,
   },
-  productPoints: { fontSize: 18, color: '#22c55e', fontWeight: 'bold' },
-  addToCartButton: {
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.two,
-    alignItems: 'center',
-    marginTop: Spacing.one,
-  },
-  addToCartText: { color: 'white', fontSize: 12, fontWeight: 'bold' },
+  productPoints: { fontSize: 14, color: '#22c55e', fontWeight: 'bold' },
 
   // ── Floating Cart ──
   floatingCart: {
@@ -258,25 +288,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
+    marginTop: 10
   },
   floatingCartIcon: {
     position: 'relative',
-    width: 32,
-    height: 32,
+    paddingLeft: 10,
+    paddingRight: 10,
+    paddingTop: 5,
+    paddingBottom: 5,
     borderRadius: 16,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 5
   },
   floatingCartText: {
     flex: 1,
     color: 'white',
     fontSize: 14,       // เล็กลง
-    fontWeight: 'bold',
+    fontWeight: 'medium',
   },
   floatingCartTotal: {
     color: 'white',
     fontSize: 16,       // เล็กลง
-    fontWeight: '800',
+    fontWeight: '400',
   },
 });

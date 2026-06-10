@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
@@ -13,7 +13,13 @@ import { useCart } from '@/hooks/use-cart';
 export default function ManageProductsScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { addProduct } = useCart();
+  const { addProduct, user } = useCart();
+
+  useEffect(() => {
+    if (!user || user.role !== 1) {
+      router.replace('/home');
+    }
+  }, [user]);
 
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');

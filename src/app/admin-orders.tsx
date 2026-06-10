@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Pressable, View, FlatList, ActivityIndicator } from 'react-native';
+import { StyleSheet, Pressable, View, FlatList, ActivityIndicator, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useCart } from '@/hooks/use-cart';
 
 const API_URL = 'http://192.168.1.34:3001';
 
@@ -17,6 +18,13 @@ interface OrderItem {
   quantity: number;
 }
 
+interface User {
+  phoneNumber: string;
+  name?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
 interface Order {
   id: string;
   userPhone: string;
@@ -26,18 +34,33 @@ interface Order {
   status: string;
   paymentStatus: string;
   deliveryMethod: string;
+  paymentMethod: string;
   items: OrderItem[];
+  user: User;
 }
 
 export default function AdminOrdersScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { user } = useCart();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    if (!user || user.role !== 1) {
+      router.replace('/home');
+    }
+  }, [user]);
+
   const fetchAllOrders = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/orders`);
+      if (!user?.token) return;
+
+      const response = await fetch(`${API_URL}/api/admin/orders`, {
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        }
+      });
       const result = await response.json();
       if (result.status === 'success') {
         setOrders(result.data);
@@ -51,7 +74,7 @@ export default function AdminOrdersScreen() {
 
   useEffect(() => {
     fetchAllOrders();
-  }, []);
+  }, [user]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -66,10 +89,13 @@ export default function AdminOrdersScreen() {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
+      if (!user?.token) return;
+
       const response = await fetch(`${API_URL}/api/admin/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`
         },
         body: JSON.stringify({ status: newStatus })
       });
@@ -80,6 +106,11 @@ export default function AdminOrdersScreen() {
     } catch (error) {
       console.error('Update order status failed', error);
     }
+  };
+
+  const openGoogleMaps = (lat: number, lng: number) => {
+    const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    Linking.openURL(url).catch((err) => console.error("Couldn't load page", err));
   };
 
   const getStatusColor = (status: string) => {
@@ -108,6 +139,11 @@ export default function AdminOrdersScreen() {
           <ThemedText themeColor="textSecondary" style={styles.orderDate}>{formatDate(item.createdAt)}</ThemedText>
         </View>
         <View style={styles.statusGroup}>
+          <View style={[styles.statusBadge, { backgroundColor: item.paymentMethod === 'cod' ? '#fef9c3' : '#e0f2fe', marginRight: 4 }]}>
+            <ThemedText style={[styles.statusText, { color: item.paymentMethod === 'cod' ? '#a16207' : '#0369a1' }]}>
+              {item.paymentMethod === 'cod' ? 'ปลายทาง' : 'QR'}
+            </ThemedText>
+          </View>
           <View style={[styles.statusBadge, { backgroundColor: item.paymentStatus === 'paid' ? '#dcfce7' : '#fee2e2', marginRight: 4 }]}>
             <ThemedText style={[styles.statusText, { color: item.paymentStatus === 'paid' ? '#22c55e' : '#ef4444' }]}>
               {item.paymentStatus === 'paid' ? 'จ่ายแล้ว' : 'ยังไม่จ่าย'}
@@ -125,16 +161,28 @@ export default function AdminOrdersScreen() {
         <ThemedText themeColor="textSecondary" style={styles.deliveryMethodText}>
           วิธีรับสินค้า: {item.deliveryMethod === 'delivery' ? 'จัดส่งถึงที่' : 'รับเองที่ร้าน'}
         </ThemedText>
+        {item.deliveryMethod === 'delivery' && item.user?.latitude && item.user?.longitude && (
+          <Pressable onPress={() => openGoogleMaps(item.user.latitude!, item.user.longitude!)} style={styles.mapsLink}>
+            <ThemedText style={styles.mapsLinkText}>📍 ดูแผนที่</ThemedText>
+          </Pressable>
+        )}
       </View>
 
       <View style={styles.orderContent}>
         <View style={styles.customerRow}>
-          <ThemedText themeColor="textSecondary">เบอร์โทร: </ThemedText>
-          <ThemedText style={styles.customerName}>{item.userPhone}</ThemedText>
+          <ThemedText themeColor="textSecondary">ลูกค้า: </ThemedText>
+          <ThemedText style={styles.customerName}>{item.user?.name || 'ไม่ระบุชื่อ'} ({item.userPhone})</ThemedText>
         </View>
-        <ThemedText style={styles.itemsList} numberOfLines={1}>
-          {item.items.map(i => `${i.name} x${i.quantity}`).join(', ')}
-        </ThemedText>
+        {item.items.map((i, index) => (
+          <View key={`${i.id}-${index}`} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
+            <ThemedText style={[styles.itemsList, { flex: 1, paddingRight: 8 }]} numberOfLines={1}>
+              {i.name} x{i.quantity}
+            </ThemedText>
+            <ThemedText style={[styles.itemsList, { color: '#334155' }]}>
+              ฿{(i.price * i.quantity).toLocaleString()}
+            </ThemedText>
+          </View>
+        ))}
       </View>
 
       <View style={styles.orderFooter}>
@@ -143,7 +191,7 @@ export default function AdminOrdersScreen() {
           <ThemedText style={styles.pointsEarned}>ใช้ไป {item.totalPoints} P</ThemedText>
         </View>
 
-        {item.status === 'pending' && item.paymentStatus === 'paid' && (
+        {item.status === 'pending' && (item.paymentStatus === 'paid' || item.paymentMethod === 'cod') && (
           <View style={styles.actionButtons}>
             <Pressable 
               style={styles.cancelButton}
@@ -252,11 +300,25 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   deliveryMethodRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginTop: -Spacing.one,
     marginBottom: Spacing.one,
   },
   deliveryMethodText: {
     fontSize: 12,
+  },
+  mapsLink: {
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  mapsLinkText: {
+    fontSize: 12,
+    color: '#3b82f6',
+    fontWeight: '600',
   },
   orderContent: {
     gap: 4,
@@ -270,7 +332,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   itemsList: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#64748b',
   },
   orderFooter: {
@@ -321,5 +383,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#ef4444',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 100,
   }
 });

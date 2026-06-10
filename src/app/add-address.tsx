@@ -108,39 +108,53 @@ export default function AddAddressScreen() {
 
   const fetchAddressFromCoords = async (latitude: number, longitude: number) => {
     try {
-      const reverseGeocode = await Location.reverseGeocodeAsync({
-        latitude,
-        longitude,
-      });
+      const API_KEY = 'AIzaSyCVV4Ls8LCs1xC0MvKam7Xsf2kuPL28gNw';
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${API_KEY}&language=th`
+      );
+      const data = await response.json();
 
-      if (reverseGeocode.length > 0) {
-        const place = reverseGeocode[0];
-        const formatted = [
-          place.name,
-          place.street,
-          place.subregion,
-          place.city,
-          place.region,
-          place.postalCode
-        ].filter(Boolean).join(' ');
-        setCurrentAddress(formatted);
-        
-        // Update form fields
-        setSubDistrict(place.subregion || place.district || '');
-        setDistrict(place.city || place.subregion || '');
-        setProvince(place.region || '');
-        setPostalCode(place.postalCode || '');
-        
-        const street = place.street || '';
-        const name = place.name || '';
-        if (name && name !== street) {
-          setAddress(`${name} ${street}`.trim());
-        } else {
-          setAddress(street);
+      if (data.status === 'OK' && data.results.length > 0) {
+        const result = data.results[0];
+        setCurrentAddress(result.formatted_address);
+
+        let extractedSubDistrict = '';
+        let extractedDistrict = '';
+        let extractedProvince = '';
+        let extractedPostalCode = '';
+        let extractedAddress = '';
+
+        result.address_components.forEach((component: any) => {
+          const types = component.types;
+          if (types.includes('sublocality_level_2') || types.includes('sublocality_level_1') || types.includes('sublocality')) {
+            if (!extractedSubDistrict) extractedSubDistrict = component.long_name;
+          }
+          if (types.includes('locality') || types.includes('administrative_area_level_2')) {
+            extractedDistrict = component.long_name;
+          }
+          if (types.includes('administrative_area_level_1')) {
+            extractedProvince = component.long_name;
+          }
+          if (types.includes('postal_code')) {
+            extractedPostalCode = component.long_name;
+          }
+          if (types.includes('street_number') || types.includes('route')) {
+            extractedAddress += component.long_name + ' ';
+          }
+        });
+
+        if (!extractedAddress.trim()) {
+          extractedAddress = result.formatted_address.split(',')[0] || result.name || '';
         }
+
+        setSubDistrict(extractedSubDistrict.replace('แขวง', '').replace('ตำบล', '').trim());
+        setDistrict(extractedDistrict.replace('เขต', '').replace('อำเภอ', '').trim());
+        setProvince(extractedProvince.replace('จังหวัด', '').trim());
+        setPostalCode(extractedPostalCode);
+        setAddress(extractedAddress.trim());
       }
     } catch (error) {
-      console.error('Reverse geocode failed:', error);
+      console.error('Geocode API failed:', error);
     }
   };
 
@@ -179,11 +193,7 @@ export default function AddAddressScreen() {
   };
 
   const handleSave = async () => {
-    if (!address || !subDistrict || !district || !province || !postalCode) {
-      Alert.alert('ผิดพลาด', 'กรุณากรอกข้อมูลให้ครบถ้วน');
-      return;
-    }
-
+    // Make sure we at least have a token
     if (!user?.token) {
       Alert.alert('ผิดพลาด', 'กรุณาเข้าสู่ระบบใหม่');
       return;
@@ -464,7 +474,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: '#22c55e',
-    padding: Spacing.four,
+    // padding: Spacing.four,
     borderRadius: 16,
     alignItems: 'center',
     marginTop: Spacing.two,
@@ -475,6 +485,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+    lineHeight: 30
   },
   markerFixed: {
     position: 'absolute',

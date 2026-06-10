@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FlatList, StyleSheet, Image, Pressable, Platform, Alert, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, Image, Pressable, Platform, Alert, TouchableOpacity, View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
@@ -12,8 +12,9 @@ import { useCart, CartItem } from '@/hooks/use-cart';
 export default function CartScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { cart, removeFromCart, updateQuantity, totalCash, totalPoints, user, checkout } = useCart();
+  const { cart, removeFromCart, updateQuantity, totalCash, totalPoints, user, checkout, clearCart } = useCart();
   const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup');
+  const [paymentMethod, setPaymentMethod] = useState<'qr' | 'cod'>('qr');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleCheckout = async () => {
@@ -34,18 +35,23 @@ export default function CartScreen() {
           return;
         }
       }
-      const result = await checkout(deliveryMethod);
+      const result = await checkout(deliveryMethod, paymentMethod);
       if (result.success && result.data) {
-        router.push({
-          pathname: '/payment-qr',
-          params: {
-            deliveryMethod,
-            orderId: result.data.id,
-            finalCash: result.data.totalCash,
-            totalPoints: result.data.totalPoints,
-            createdAt: result.data.createdAt
-          }
-        });
+        if (paymentMethod === 'qr') {
+          router.push({
+            pathname: '/payment-qr',
+            params: {
+              deliveryMethod,
+              orderId: result.data.id,
+              finalCash: result.data.totalCash,
+              totalPoints: result.data.totalPoints,
+              createdAt: result.data.createdAt
+            }
+          });
+        } else {
+          Alert.alert('สั่งซื้อสำเร็จ', 'รายการสั่งซื้อของคุณถูกส่งเรียบร้อยแล้ว (ชำระเงินปลายทาง)');
+          router.replace('/order-history');
+        }
       } else {
         Alert.alert('ผิดพลาด', result.message || 'เกิดข้อผิดพลาดในการสั่งซื้อ');
       }
@@ -65,34 +71,74 @@ export default function CartScreen() {
   ].filter(Boolean).join(' ');
 
   const renderItem = ({ item }: { item: CartItem }) => (
-    <ThemedView style={[styles.cartItem, { backgroundColor: theme.backgroundElement }]}>
-      <Image source={{ uri: item.image }} style={styles.productImage} />
-      <ThemedView style={styles.itemInfo}>
-        <ThemedText style={styles.productName} numberOfLines={1}>{item.name}</ThemedText>
-        <ThemedView style={styles.priceRow}>
-          <ThemedText style={styles.productPrice}>฿{item.price}</ThemedText>
-          <ThemedText style={styles.productPoints}>{item.points} P</ThemedText>
-        </ThemedView>
-        <ThemedView style={styles.quantityContainer}>
-          <Pressable
-            style={[styles.qtyButton, { backgroundColor: theme.backgroundSelected }]}
-            onPress={() => updateQuantity(item.id, item.quantity - 1)}
-          >
-            <ThemedText style={styles.qtyButtonText}>−</ThemedText>
-          </Pressable>
-          <ThemedText style={styles.qtyText}>{item.quantity}</ThemedText>
-          <Pressable
-            style={[styles.qtyButton, { backgroundColor: theme.backgroundSelected }]}
-            onPress={() => updateQuantity(item.id, item.quantity + 1)}
-          >
-            <ThemedText style={styles.qtyButtonText}>+</ThemedText>
-          </Pressable>
-        </ThemedView>
-      </ThemedView>
-      <Pressable onPress={() => removeFromCart(item.id)} style={styles.removeButton}>
-        <SymbolView name="trash" size={16} tintColor="#cbd5e1" />
-      </Pressable>
-    </ThemedView>
+    <View className="flex-row h-[110px] items-center gap-3 px-4 py-3 bg-white dark:bg-zinc-900 border rounded-2xl shadow shadow-xs border-zinc-100 dark:border-zinc-800">
+
+      {/* Image */}
+      <Image
+        source={{ uri: item.image }}
+        className="w-24 h-full rounded-xl bg-zinc-100"
+        resizeMode="cover"
+      />
+
+      <View className='flex justify-between flex-1 flex-row'>
+        <View className='flex justify-between h-full'>
+          <View className='flex justify-between flex-row w-full'>
+            <Text className='font-[Kanit-Medium] text-gray-600 text-lg'>{item.name}</Text>
+            <Pressable
+              onPress={() => removeFromCart(item.id)}
+              className="p-1.5 active:opacity-50"
+            >
+              <SymbolView name="trash" size={15} tintColor="#ef4444" />
+            </Pressable>
+          </View>
+          <View className='flex flex-row justify-between items-center'>
+
+            <View>
+              <Text className='font-[Kanit-Regular] text-green-600 text-2xl'>{(item.price).toFixed(2)} <Text className='text-sm text-gray-600'>บาท</Text></Text>
+              <Text className='font-[Kanit-Regular] text-[#f59e0b] text-2xl'>{item.points} P</Text>
+            </View>
+
+
+            <View>
+              {/* Qty stepper */}
+              <View className="flex-row items-center gap-2">
+                <Pressable
+                  onPress={() => updateQuantity(item.id, item.quantity - 1)}
+                  className="w-8 h-8 rounded-full border border-gray-100 bg-white shadow shadow-xl dark:bg-zinc-800 items-center justify-center active:opacity-60"
+                >
+                  <Text className="text-2xl leading-none text-green-600 dark:text-zinc-300 ">
+                    −
+                  </Text>
+                </Pressable>
+
+                <Text className="text-xl font-[Kanit-Medium] w-5 text-center text-gray-500 dark:text-zinc-100">
+                  {item.quantity}
+                </Text>
+
+                <Pressable
+                  onPress={() => updateQuantity(item.id, item.quantity + 1)}
+                  className="w-8 h-8 rounded-full bg-white shadow shadow-xl border border-gray-100 dark:bg-zinc-800 items-center justify-center active:opacity-60"
+                >
+                  <Text className="text-2xl leading-none text-green-600 dark:text-zinc-300">
+                    +
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </View>
+
+      </View>
+
+      {/* Delete */}
+      {/* <Pressable
+        onPress={() => removeFromCart(item.id)}
+        className="p-1.5 active:opacity-50"
+      >
+        <SymbolView name="trash" size={15} tintColor="#ef4444" />
+      </Pressable> */}
+
+    </View>
   );
 
   return (
@@ -104,7 +150,7 @@ export default function CartScreen() {
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <SymbolView name="chevron.left" size={20} tintColor={theme.text} />
           </Pressable>
-          <ThemedText style={styles.headerTitle}>ตะกร้าสินค้า</ThemedText>
+          <Text className='font-[Kanit-Medium] text-gray-500 text-xl'>ตะกร้าของฉัน</Text>
           <View style={{ width: 36 }} />
         </ThemedView>
 
@@ -136,7 +182,7 @@ export default function CartScreen() {
                       ]}
                     >
                       <SymbolView
-                        name="hand.and.arrow.left.fill"
+                        name="hand.raised.fill"
                         size={15}
                         tintColor={deliveryMethod === 'pickup' ? 'white' : '#94a3b8'}
                       />
@@ -177,17 +223,17 @@ export default function CartScreen() {
                   </ThemedText>
 
                   {deliveryMethod === 'delivery' ? (
-                    <Pressable 
+                    <Pressable
                       onPress={() => router.push('/shipping-address')}
                       style={({ pressed }) => [
-                        styles.addressCard, 
+                        styles.addressCard,
                         { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.8 : 1 }
                       ]}
                     >
                       <View style={styles.addressIconContainer}>
                         <SymbolView name="mappin.circle.fill" size={24} tintColor="#22c55e" />
                       </View>
-                      
+
                       <View style={styles.addressInfo}>
                         <ThemedText style={styles.addressCardTitle}>
                           {fullAddress ? 'ที่อยู่ปัจจุบัน' : 'เลือกที่อยู่จัดส่ง'}
@@ -204,7 +250,7 @@ export default function CartScreen() {
                       <View style={[styles.addressIconContainer, { backgroundColor: 'rgba(34,197,94,0.1)' }]}>
                         <SymbolView name="house.fill" size={22} tintColor="#22c55e" />
                       </View>
-                      
+
                       <View style={styles.addressInfo}>
                         <ThemedText style={styles.addressCardTitle}>ร้านค้าหลัก (แม่ข่าน)</ThemedText>
                         <ThemedText style={styles.addressText} themeColor="textSecondary">
@@ -213,35 +259,82 @@ export default function CartScreen() {
                       </View>
                     </View>
                   )}
+
+                  {/* ── Payment Method Section ── */}
+                  <ThemedText style={[styles.sectionLabel, { marginTop: Spacing.four }]}>วิธีชำระเงิน</ThemedText>
+
+                  <View style={styles.paymentMethodContainer}>
+                    <Pressable
+                      onPress={() => setPaymentMethod('qr')}
+                      style={[
+                        styles.paymentOption,
+                        { backgroundColor: theme.backgroundElement },
+                        paymentMethod === 'qr' && { borderColor: '#22c55e', borderWidth: 2 }
+                      ]}
+                    >
+                      <View style={styles.paymentOptionIcon}>
+                        <SymbolView name="qrcode" size={24} tintColor={paymentMethod === 'qr' ? '#22c55e' : '#94a3b8'} />
+                      </View>
+                      <ThemedText style={[styles.paymentOptionText, paymentMethod === 'qr' && { color: '#22c55e', fontWeight: '700' }]}>
+                        QR Payment
+                      </ThemedText>
+                      {paymentMethod === 'qr' && (
+                        <View style={styles.checkIcon}>
+                          <SymbolView name="checkmark.circle.fill" size={18} tintColor="#22c55e" />
+                        </View>
+                      )}
+                    </Pressable>
+
+                    <Pressable
+                      onPress={() => setPaymentMethod('cod')}
+                      style={[
+                        styles.paymentOption,
+                        { backgroundColor: theme.backgroundElement },
+                        paymentMethod === 'cod' && { borderColor: '#22c55e', borderWidth: 2 }
+                      ]}
+                    >
+                      <View style={styles.paymentOptionIcon}>
+                        <SymbolView name="banknote.fill" size={24} tintColor={paymentMethod === 'cod' ? '#22c55e' : '#94a3b8'} />
+                      </View>
+                      <ThemedText style={[styles.paymentOptionText, paymentMethod === 'cod' && { color: '#22c55e', fontWeight: '700' }]}>
+                        ชำระปลายทาง
+                      </ThemedText>
+                      {paymentMethod === 'cod' && (
+                        <View style={styles.checkIcon}>
+                          <SymbolView name="checkmark.circle.fill" size={18} tintColor="#22c55e" />
+                        </View>
+                      )}
+                    </Pressable>
+                  </View>
+
+                  {/* ── Footer / Summary (Now part of the scrollable list) ── */}
+                  <ThemedView style={[styles.footer, { backgroundColor: theme.backgroundElement, marginTop: Spacing.four, borderRadius: 16 }]}>
+                    <View style={styles.summaryRow}>
+                      <View style={styles.summaryItem}>
+                        <ThemedText style={styles.summaryLabel}>ยอดรวม</ThemedText>
+                        <ThemedText style={styles.summaryValueBlue}>{totalCash.toLocaleString()} บาท</ThemedText>
+                      </View>
+                      <View style={styles.summaryDividerV} />
+                      <View style={styles.summaryItem}>
+                        <ThemedText style={styles.summaryLabel}>แต้มที่ได้</ThemedText>
+                        <ThemedText style={styles.summaryValueGold}>{totalPoints.toLocaleString()} P</ThemedText>
+                      </View>
+                    </View>
+
+                    <TouchableOpacity
+                      style={[styles.checkoutButton, isProcessing && { opacity: 0.6 }]}
+                      onPress={handleCheckout}
+                      disabled={isProcessing}
+                      activeOpacity={0.85}
+                    >
+                      <ThemedText style={styles.checkoutText}>
+                        {isProcessing ? 'กำลังดำเนินการ...' : 'ดำเนินการต่อ'}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  </ThemedView>
                 </View>
               }
             />
-
-            {/* ── Footer / Summary ── */}
-            <ThemedView style={[styles.footer, { backgroundColor: theme.backgroundElement }]}>
-              <View style={styles.summaryRow}>
-                <View style={styles.summaryItem}>
-                  <ThemedText style={styles.summaryLabel}>ยอดรวม</ThemedText>
-                  <ThemedText style={styles.summaryValueBlue}>฿{totalCash.toLocaleString()}</ThemedText>
-                </View>
-                <View style={styles.summaryDividerV} />
-                <View style={styles.summaryItem}>
-                  <ThemedText style={styles.summaryLabel}>แต้มที่ได้</ThemedText>
-                  <ThemedText style={styles.summaryValueGold}>{totalPoints.toLocaleString()} P</ThemedText>
-                </View>
-              </View>
-
-              <TouchableOpacity
-                style={[styles.checkoutButton, isProcessing && { opacity: 0.6 }]}
-                onPress={handleCheckout}
-                disabled={isProcessing}
-                activeOpacity={0.85}
-              >
-                <ThemedText style={styles.checkoutText}>
-                  {isProcessing ? 'กำลังดำเนินการ...' : 'ดำเนินการต่อ'}
-                </ThemedText>
-              </TouchableOpacity>
-            </ThemedView>
           </>
         ) : (
           <ThemedView style={styles.emptyContainer}>
@@ -286,18 +379,19 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingHorizontal: Spacing.four,
     paddingBottom: Spacing.four,
+    gap: 10
   },
 
   // ── Cart item ──
   cartItem: {
     flexDirection: 'row',
-    padding: Spacing.three,
-    borderRadius: 16,
+    padding: 10,
     marginBottom: Spacing.two,
     alignItems: 'center',
     gap: Spacing.three,
     borderWidth: 1,
     borderColor: 'rgba(128,128,128,0.1)',
+    borderRadius: 16
   },
   productImage: {
     width: 68,
@@ -307,17 +401,19 @@ const styles = StyleSheet.create({
   },
   itemInfo: {
     flex: 1,
-    gap: 4,
+    gap: 0,
   },
   productName: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '400',
     letterSpacing: 0.1,
+    color: '#4b5563'
   },
   priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    // gap: Spacing.two,
+
   },
   productPrice: {
     fontSize: 15,
@@ -325,9 +421,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   productPoints: {
-    fontSize: 13,
-    color: '#22c55e',
+    fontSize: 16,
+    color: '#fbbf24',
     fontWeight: '600',
+    marginTop: -5
   },
   quantityContainer: {
     flexDirection: 'row',
@@ -432,18 +529,48 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
+  // ── Payment selection ──
+  paymentMethodContainer: {
+    flexDirection: 'row',
+    gap: Spacing.three,
+    marginTop: Spacing.one,
+  },
+  paymentOption: {
+    flex: 1,
+    padding: Spacing.three,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(128,128,128,0.1)',
+    alignItems: 'center',
+    gap: 8,
+    position: 'relative',
+  },
+  paymentOptionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(34,197,94,0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  paymentOptionText: {
+    fontSize: 14,
+    color: '#94a3b8',
+  },
+  checkIcon: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+  },
+
   // ── Footer ──
   footer: {
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.three,
-    paddingBottom: 28,
+    paddingBottom: Spacing.four,
     gap: Spacing.three,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.05, shadowRadius: 10 },
-      android: { elevation: 8 },
-    }),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(128,128,128,0.1)',
   },
   summaryRow: {
     flexDirection: 'row',
@@ -472,7 +599,7 @@ const styles = StyleSheet.create({
   summaryValueGold: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#22c55e',
+    color: '#f59e0b',
   },
   checkoutButton: {
     backgroundColor: '#22c55e',

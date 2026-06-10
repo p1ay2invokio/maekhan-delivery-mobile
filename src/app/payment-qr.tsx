@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Pressable, Alert, View, ScrollView, Platform } from 'react-native';
+import { StyleSheet, Pressable, Alert, View, ScrollView, Platform, Text } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -10,12 +10,15 @@ import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useCart } from '@/hooks/use-cart';
 import {createKshopQRCode} from 'kbankshop-promtpay-generator'
+import * as MediaLibrary from 'expo-media-library/legacy';
+import * as FileSystem from 'expo-file-system/legacy';
 
 export default function PaymentQrScreen() {
   const theme = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams();
   const { user } = useCart();
+  const [isSaving, setIsSaving] = useState(false);
 
   const orderId = params.orderId as string;
   const createdAt = params.createdAt as string;
@@ -119,10 +122,42 @@ export default function PaymentQrScreen() {
       'ยืนยันการชำระเงิน',
       `วิธีรับสินค้า: ${deliveryMethod === 'pickup' ? 'รับเองที่ร้าน' : 'จัดส่งถึงที่'}\n\nระบบกำลังรอการยืนยันยอดเงิน ${finalCash.toFixed(2)} บาท จากธนาคาร หากคุณชำระเงินแล้ว ระบบจะแจ้งเตือนคุณทันที`,
       [
-        { text: 'กลับไปหน้าหลัก', onPress: () => router.replace('/(tabs)') },
+        { text: 'กลับไปหน้าหลัก', onPress: () => router.replace('/home') },
         { text: 'ตกลง', style: 'cancel' }
       ]
     );
+  };
+
+  const handleSaveToGallery = async () => {
+    try {
+      setIsSaving(true);
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('ต้องการการอนุญาต', 'กรุณาอนุญาตการเข้าถึงคลังรูปภาพเพื่อบันทึกรูปภาพ');
+        return;
+      }
+
+      const fileUri = FileSystem.cacheDirectory + `qr-${orderId}.png`;
+      const downloadResult = await FileSystem.downloadAsync(qrPlaceholder, fileUri);
+
+      if (downloadResult.status === 200) {
+        const asset = await MediaLibrary.createAssetAsync(downloadResult.uri);
+        const album = await MediaLibrary.getAlbumAsync('MemberGrocery');
+        if (album === null) {
+          await MediaLibrary.createAlbumAsync('MemberGrocery', asset, false);
+        } else {
+          await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+        }
+        Alert.alert('สำเร็จ', 'บันทึกรูปลงแกลลอรี่เรียบร้อยแล้ว');
+      } else {
+        throw new Error('Download failed');
+      }
+    } catch (error) {
+      console.error('Save to gallery failed', error);
+      Alert.alert('ผิดพลาด', 'ไม่สามารถบันทึกรูปภาพได้');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -132,7 +167,7 @@ export default function PaymentQrScreen() {
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <SymbolView name="chevron.left" size={24} tintColor={theme.text} />
           </Pressable>
-          <ThemedText type="subtitle">สแกนจ่ายเงิน</ThemedText>
+          <Text className='font-[Kanit-Medium] text-gray-500 text-2xl'>สแกนจ่ายเงิน</Text>
           <ThemedView style={{ width: 40 }} />
         </ThemedView>
 
@@ -172,11 +207,24 @@ export default function PaymentQrScreen() {
               />
             </View>
 
-            <ThemedView style={styles.amountBox}>
+            <Pressable 
+              style={({ pressed }) => [
+                styles.saveButton, 
+                { opacity: (pressed || isSaving) ? 0.8 : 1, backgroundColor: '#22c55e' }
+              ]}
+              onPress={handleSaveToGallery}
+              disabled={isSaving}
+            >
+              <SymbolView name="square.and.arrow.down" size={20} tintColor="white" />
+              <ThemedText style={styles.saveButtonText}>
+                {isSaving ? 'กำลังบันทึก...' : 'บันทึกรูป QR ลงแกลลอรี่'}
+              </ThemedText>
+            </Pressable>
+
+            <View style={styles.amountBox}>
               <ThemedText themeColor="textSecondary">ยอดเงินที่ต้องชำระ (รวมเศษสตางค์)</ThemedText>
               <ThemedText style={styles.amountText}>฿{finalCash.toFixed(2)}</ThemedText>
-              <ThemedText style={styles.pointsText}>+ {totalPoints.toLocaleString()} Points</ThemedText>
-            </ThemedView>
+            </View>
           </ThemedView>
 
           <ThemedView style={styles.instructionBox}>
@@ -186,12 +234,12 @@ export default function PaymentQrScreen() {
             </ThemedText>
           </ThemedView>
 
-          <Pressable 
+          {/* <Pressable 
             style={({ pressed }) => [styles.confirmButton, { backgroundColor: '#22c55e', opacity: pressed ? 0.8 : 1 }]}
             onPress={handleConfirmPayment}
           >
             <ThemedText style={styles.confirmText}>ฉันชำระเงินเรียบร้อยแล้ว</ThemedText>
-          </Pressable>
+          </Pressable> */}
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
@@ -221,16 +269,16 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.two,
-    paddingBottom: Spacing.six,
+    paddingBottom: Spacing.four,
     alignItems: 'center',
-    gap: Spacing.four,
+    gap: Spacing.two,
   },
   qrContainer: {
     width: '100%',
     borderRadius: 24,
-    padding: Spacing.six,
+    padding: Spacing.four,
     alignItems: 'center',
-    gap: Spacing.four,
+    gap: Spacing.two,
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12 },
       android: { elevation: 6 },
@@ -243,27 +291,27 @@ const styles = StyleSheet.create({
   orderIdText: {
     fontSize: 13,
     fontWeight: '600',
-    marginTop: -Spacing.two,
+    marginTop: -Spacing.one,
   },
   qrWrapper: {
     backgroundColor: 'white',
-    padding: Spacing.three,
+    padding: Spacing.two,
     borderRadius: 16,
   },
   qrImage: {
-    width: 200,
-    height: 200,
+    width: 180,
+    height: 180,
   },
   timerCard: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
     borderRadius: 16,
     gap: Spacing.three,
     borderWidth: 1.5,
-    marginVertical: Spacing.two,
+    marginVertical: Spacing.one,
   },
   timerContent: {
     flex: 1,
@@ -274,7 +322,7 @@ const styles = StyleSheet.create({
     color: '#22c55e',
   },
   timerValue: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     color: '#22c55e',
     fontVariant: ['tabular-nums'],
@@ -282,30 +330,45 @@ const styles = StyleSheet.create({
   },
   amountBox: {
     alignItems: 'center',
-    gap: 4,
+    gap: 0,
   },
   amountText: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#22c55e',
-    lineHeight: 36
+    lineHeight: 34
   },
   pointsText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#22c55e',
     fontWeight: 'bold',
   },
   instructionBox: {
     width: '100%',
-    padding: Spacing.four,
+    padding: Spacing.two,
   },
   instructionText: {
-    lineHeight: 22,
+    lineHeight: 20,
     textAlign: 'center',
+  },
+  saveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.two,
+    width: '100%',
+    paddingVertical: Spacing.three,
+    borderRadius: 16,
+    marginTop: Spacing.one,
+  },
+  saveButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   confirmButton: {
     width: '100%',
-    paddingVertical: Spacing.four,
+    paddingVertical: Spacing.three,
     borderRadius: 16,
     alignItems: 'center',
   },
