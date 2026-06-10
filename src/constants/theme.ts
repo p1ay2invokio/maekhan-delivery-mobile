@@ -9,6 +9,7 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
+    primary: '#22c55e',
     text: '#000000',
     background: '#ffffff',
     backgroundElement: '#F0F0F3',
@@ -16,11 +17,12 @@ export const Colors = {
     textSecondary: '#60646C',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    primary: '#22c55e',
+    text: '#FFFFFF',
+    background: '#0F172A',
+    backgroundElement: '#1E293B',
+    backgroundSelected: '#334155',
+    textSecondary: '#94A3B8',
   },
 } as const;
 
@@ -29,7 +31,7 @@ export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
+    sans: 'Kanit',
     /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
     /** iOS `UIFontDescriptorSystemDesignRounded` */
@@ -38,13 +40,13 @@ export const Fonts = Platform.select({
     mono: 'ui-monospace',
   },
   default: {
-    sans: 'normal',
+    sans: 'Kanit',
     serif: 'serif',
     rounded: 'normal',
     mono: 'monospace',
   },
   web: {
-    sans: 'var(--font-display)',
+    sans: 'Kanit, var(--font-display)',
     serif: 'var(--font-serif)',
     rounded: 'var(--font-rounded)',
     mono: 'var(--font-mono)',

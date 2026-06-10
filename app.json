@@ -8,7 +8,15 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "bundleIdentifier": "com.play21947.my-app",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "แอปพลิเคชันต้องการเข้าถึงคลังภาพเพื่อเปลี่ยนรูปโปรไฟล์ของคุณ",
+        "NSCameraUsageDescription": "แอปพลิเคชันต้องการเข้าถึงกล้องเพื่อถ่ายรูปโปรไฟล์ของคุณ",
+        "NSLocationWhenInUseUsageDescription": "แอปพลิเคชันต้องการเข้าถึงตำแหน่งของคุณเพื่อช่วยระบุที่อยู่จัดส่ง"
+      },
+      "config": {
+        "googleMapsApiKey": "AIzaSyCVV4Ls8LCs1xC0MvKam7Xsf2kuPL28gNw"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +25,18 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCAKERDq7wFdL1msHmBnlfw-7NHRDfqGRM"
+        }
+      },
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "predictiveBackGestureEnabled": false,
+      "package": "com.play21947.myapp"
     },
     "web": {
       "output": "static",
@@ -26,6 +45,12 @@
     "plugins": [
       "expo-router",
       [
+        "react-native-maps",
+        {
+          "iosGoogleMapsApiKey": "AIzaSyCVV4Ls8LCs1xC0MvKam7Xsf2kuPL28gNw"
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
@@ -33,6 +58,20 @@
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 76
           }
+        }
+      ],
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "แอปต้องการเข้าถึงคลังภาพเพื่อเปลี่ยนรูปโปรไฟล์ของคุณ",
+          "cameraPermission": "แอปต้องการเข้าถึงกล้องเพื่อถ่ายรูปโปรไฟล์ของคุณ"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "แอปต้องการเข้าถึงตำแหน่งของคุณเพื่อช่วยระบุที่อยู่จัดส่ง"
         }
       ]
     ],
