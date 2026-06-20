@@ -3,12 +3,13 @@ import { StyleSheet, Pressable, Alert, View, ScrollView, Platform, Text } from '
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { SymbolView } from '@/components/symbol-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useCart } from '@/hooks/use-cart';
+import { API_URL } from '@/constants/config';
 import {createKshopQRCode} from 'kbankshop-promtpay-generator'
 import * as MediaLibrary from 'expo-media-library/legacy';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -37,8 +38,6 @@ export default function PaymentQrScreen() {
   
   // Placeholder QR code URL
   const qrPlaceholder = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${qr}`;
-
-  const API_URL = 'http://192.168.1.34:3001';
 
   // Countdown timer logic
   const [timeLeft, setTimeLeft] = useState(() => {
@@ -184,11 +183,11 @@ export default function PaymentQrScreen() {
               { backgroundColor: timeLeft < 60 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(128, 128, 128, 0.05)' },
               { borderColor: timeLeft < 60 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(128, 128, 128, 0.1)' }
             ]}>
-              <SymbolView 
+              {/* <SymbolView 
                 name={timeLeft < 60 ? "exclamationmark.circle.fill" : "clock.fill"} 
                 size={24} 
                 tintColor={timeLeft < 60 ? '#ef4444' : '#22c55e'} 
-              />
+              /> */}
               <View style={styles.timerContent}>
                 <ThemedText style={[styles.timerLabel, timeLeft < 60 && { color: '#ef4444' }]}>
                   กรุณาชำระเงินภายใน
@@ -315,6 +314,7 @@ const styles = StyleSheet.create({
   },
   timerContent: {
     flex: 1,
+    alignItems: 'center'
   },
   timerLabel: {
     fontSize: 12,

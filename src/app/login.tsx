@@ -9,15 +9,14 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useCart, storage, USER_STORAGE_KEY } from '@/hooks/use-cart';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// Base URL for the API
-const API_URL = 'http://192.168.1.34:3001'; 
+import { API_URL } from '@/constants/config'; 
 
 export default function LoginScreen() {
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [mooban, setMooban] = useState('');
   const [loading, setLoading] = useState(false);
   
   const router = useRouter();
@@ -25,8 +24,8 @@ export default function LoginScreen() {
   const { login } = useCart();
 
   const handleAction = async () => {
-    if (isRegister && (!name || !phone)) {
-      Alert.alert('ข้อมูลไม่ครบ', 'กรุณากรอกชื่อและเบอร์โทรศัพท์');
+    if (isRegister && (!name || !phone || !mooban)) {
+      Alert.alert('ข้อมูลไม่ครบ', 'กรุณากรอกชื่อ เบอร์โทรศัพท์ และหมู่บ้าน');
       return;
     }
 
@@ -39,7 +38,7 @@ export default function LoginScreen() {
     try {
       const endpoint = isRegister ? '/api/register' : '/api/login';
       const body = isRegister 
-        ? { name, phoneNumber: phone }
+        ? { name, phoneNumber: phone, mooban }
         : { phoneNumber: phone };
 
       const response = await fetch(`${API_URL}${endpoint}`, {
@@ -123,6 +122,17 @@ export default function LoginScreen() {
                     keyboardType="phone-pad"
                     value={phone}
                     onChangeText={setPhone}
+                  />
+                </ThemedView>
+
+                <ThemedView style={styles.inputContainer}>
+                  <ThemedText type="smallBold">หมู่บ้าน</ThemedText>
+                  <TextInput
+                    style={[styles.input, { color: theme.text, borderColor: theme.backgroundElement }]}
+                    placeholder="เช่น หมู่บ้านแสนสบาย"
+                    placeholderTextColor={theme.textSecondary}
+                    value={mooban}
+                    onChangeText={setMooban}
                   />
                 </ThemedView>
               </>

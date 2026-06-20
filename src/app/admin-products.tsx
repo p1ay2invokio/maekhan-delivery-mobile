@@ -9,11 +9,12 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useCart } from '@/hooks/use-cart';
+import { SymbolView } from '@/components/symbol-view';
 
 export default function ManageProductsScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { addProduct, user } = useCart();
+  const { addProduct, user, products, deleteProduct } = useCart();
 
   useEffect(() => {
     if (!user || user.role !== 1) {
@@ -144,6 +145,45 @@ export default function ManageProductsScreen() {
           >
             <ThemedText style={styles.submitText}>{loading ? 'กำลังบันทึก...' : 'บันทึกสินค้า'}</ThemedText>
           </Pressable>
+
+          <View style={styles.productListSection}>
+            <ThemedText style={styles.sectionHeader}>สินค้าทั้งหมด ({products.length})</ThemedText>
+            {products.map((item) => (
+              <View key={item.id} style={[styles.productRow, { backgroundColor: theme.backgroundElement }]}>
+                <Image source={{ uri: item.image }} style={styles.thumbnail} contentFit="cover" />
+                <View style={styles.productDetails}>
+                  <ThemedText style={styles.productNameText} numberOfLines={1}>{item.name}</ThemedText>
+                  <ThemedText style={styles.productPriceText}>{item.price} บาท | {item.points} P</ThemedText>
+                </View>
+                <Pressable
+                  onPress={() => {
+                    Alert.alert(
+                      'ยืนยันการลบสินค้า',
+                      `คุณต้องการลบสินค้า "${item.name}" ใช่หรือไม่?`,
+                      [
+                        { text: 'ยกเลิก', style: 'cancel' },
+                        { 
+                          text: 'ลบ', 
+                          style: 'destructive',
+                          onPress: async () => {
+                            try {
+                              await deleteProduct(item.id);
+                              Alert.alert('สำเร็จ', 'ลบสินค้าเรียบร้อยแล้ว');
+                            } catch (err) {
+                              console.error(err);
+                            }
+                          }
+                        }
+                      ]
+                    );
+                  }}
+                  style={styles.deleteRowButton}
+                >
+                  <SymbolView name="trash" size={18} tintColor="#ef4444" />
+                </Pressable>
+              </View>
+            ))}
+          </View>
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
@@ -169,7 +209,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: Spacing.four,
-    paddingBottom: Spacing.eight,
+    paddingBottom: Spacing.six,
     gap: Spacing.four,
   },
   formGroup: {
@@ -213,5 +253,47 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  productListSection: {
+    marginTop: Spacing.six,
+    gap: Spacing.three,
+  },
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: Spacing.one,
+  },
+  productRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.three,
+    borderRadius: Spacing.three,
+    gap: Spacing.three,
+  },
+  thumbnail: {
+    width: 50,
+    height: 50,
+    borderRadius: Spacing.two,
+    backgroundColor: 'rgba(128,128,128,0.1)',
+  },
+  productDetails: {
+    flex: 1,
+    gap: 2,
+  },
+  productNameText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  productPriceText: {
+    fontSize: 14,
+    color: '#22c55e',
+  },
+  deleteRowButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

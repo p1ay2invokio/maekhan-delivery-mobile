@@ -1,7 +1,7 @@
-import { FlatList, StyleSheet, Image, Pressable, Dimensions, Platform, View, ScrollView, Alert } from 'react-native';
+import { FlatList, StyleSheet, Image, Pressable, Dimensions, Platform, View, ScrollView, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { SymbolView } from '@/components/symbol-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
@@ -9,8 +9,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useCart, Product } from '@/hooks/use-cart';
 import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
-
-const SOCKET_URL = 'http://192.168.1.34:3002';
+import { SOCKET_URL } from '@/constants/config';
 
 const CATEGORIES = ['ทั้งหมด', 'ข้าว', 'ของสด', 'เครื่องปรุง', 'เครื่องดื่ม', 'อาหารแห้ง'];
 
@@ -20,9 +19,24 @@ const CARD_WIDTH = (Math.min(width, MaxContentWidth) - COLUMN_SPACING * 3) / 2;
 
 export default function HomeScreen() {
   const theme = useTheme();
-  const { products, addToCart, userPoints, totalItems, profileImage, user, refreshUser, totalCash } = useCart();
+  const { products, addToCart, userPoints, totalItems, profileImage, user, refreshUser, totalCash, fetchProducts } = useCart();
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState('ทั้งหมด');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refreshUser(),
+        fetchProducts()
+      ]);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const filteredProducts =
     activeCategory === 'ทั้งหมด'
@@ -98,6 +112,14 @@ export default function HomeScreen() {
           contentContainerStyle={styles.listContainer}
           columnWrapperStyle={styles.columnWrapper}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[theme.primary]}
+              tintColor={theme.primary}
+            />
+          }
         />
 
         {/* ── Floating Cart Button ── */}

@@ -7,8 +7,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useCart } from '@/hooks/use-cart';
-
-const API_URL = 'http://192.168.1.34:3001';
+import { API_URL } from '@/constants/config';
 
 interface OrderItem {
   id: string;
@@ -35,6 +34,7 @@ interface Order {
   paymentStatus: string;
   deliveryMethod: string;
   paymentMethod: string;
+  pickupDetails?: string;
   items: OrderItem[];
   user: User;
 }
@@ -168,6 +168,14 @@ export default function AdminOrdersScreen() {
         )}
       </View>
 
+      {item.pickupDetails ? (
+        <View style={styles.detailsRow}>
+          <ThemedText style={styles.detailsText} themeColor="textSecondary">
+            รายละเอียดเพิ่มเติม: {item.pickupDetails}
+          </ThemedText>
+        </View>
+      ) : null}
+
       <View style={styles.orderContent}>
         <View style={styles.customerRow}>
           <ThemedText themeColor="textSecondary">ลูกค้า: </ThemedText>
@@ -264,7 +272,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: Spacing.four,
-    paddingBottom: Spacing.eight,
+    paddingBottom: Spacing.six,
     gap: Spacing.three,
   },
   orderCard: {
@@ -389,5 +397,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 100,
-  }
+  },
+  detailsRow: {
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    padding: Spacing.two,
+    borderRadius: 8,
+    marginTop: -Spacing.one,
+    marginBottom: Spacing.one,
+  },
+  detailsText: {
+    fontSize: 12,
+  },
 });

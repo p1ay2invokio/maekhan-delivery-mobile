@@ -66,22 +66,6 @@ export default function AccountSettingsScreen() {
             </View>
           </View>
 
-          <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>ความปลอดภัย</ThemedText>
-            <Pressable 
-              style={[styles.menuItem, { backgroundColor: theme.backgroundElement }]}
-              onPress={() => Alert.alert('ฟีเจอร์กำลังพัฒนา', 'ระบบเปลี่ยนรหัสผ่านจะพร้อมใช้งานเร็วๆ นี้')}
-            >
-              <ThemedText style={styles.menuItemText}>เปลี่ยนรหัสผ่าน</ThemedText>
-              <ThemedText style={{ fontSize: 18, color: theme.textSecondary }}>›</ThemedText>
-            </Pressable>
-            <Pressable 
-              style={[styles.menuItem, { backgroundColor: theme.backgroundElement, marginTop: Spacing.two }]}
-              onPress={() => Alert.alert('ฟีเจอร์กำลังพัฒนา', 'ระบบลบบัญชีผู้ใช้งานจะพร้อมใช้งานเร็วๆ นี้')}
-            >
-              <ThemedText style={[styles.menuItemText, { color: '#ef4444' }]}>ลบบัญชีผู้ใช้งาน</ThemedText>
-            </Pressable>
-          </View>
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
@@ -107,7 +91,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: Spacing.four,
-    paddingBottom: Spacing.eight,
+    paddingBottom: Spacing.six,
     gap: Spacing.six,
   },
   section: {

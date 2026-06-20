@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Platform, Alert } from 'react-native';
+import { API_URL } from '@/constants/config';
 
 /**
  * AsyncStorage Exclusively for Native App
@@ -58,6 +59,7 @@ export interface User {
   role?: number;
   token?: string; 
   address?: string;
+  mooban?: string;
   subDistrict?: string;
   district?: string;
   province?: string;
@@ -65,15 +67,13 @@ export interface User {
   profileImage?: string;
 }
 
-const API_URL = 'http://192.168.1.34:3001';
-
 const INITIAL_PRODUCTS: Product[] = [
   {
     id: '1',
     name: 'ข้าวหอมมะลิ 100%',
     price: 185,
     points: 50,
-    image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=400',
+    image: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="%23f0fdf4"/><circle cx="50" cy="50" r="30" fill="%23bbf7d0"/><path d="M30,50 Q50,70 70,50" stroke="%2322c55e" stroke-width="4" fill="none"/></svg>',
     category: 'ข้าว',
   },
   {
@@ -81,7 +81,7 @@ const INITIAL_PRODUCTS: Product[] = [
     name: 'น้ำมันพืชตราองุ่น',
     price: 45,
     points: 10,
-    image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&q=80&w=400',
+    image: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="%23fef9c3"/><rect x="40" y="30" width="20" height="50" rx="5" fill="%23fde047"/><rect x="45" y="20" width="10" height="10" fill="%23ca8a04"/></svg>',
     category: 'เครื่องปรุง',
   },
   {
@@ -89,7 +89,7 @@ const INITIAL_PRODUCTS: Product[] = [
     name: 'ไข่ไก่สดเบอร์ 2 (แพ็ค 10)',
     price: 52,
     points: 15,
-    image: 'https://images.unsplash.com/photo-1518562180175-34a163b1a9a6?auto=format&fit=crop&q=80&w=400',
+    image: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="%23fff7ed"/><ellipse cx="50" cy="50" rx="20" ry="25" fill="%23fed7aa"/></svg>',
     category: 'ของสด',
   },
   {
@@ -97,7 +97,7 @@ const INITIAL_PRODUCTS: Product[] = [
     name: 'น้ำดื่มสิงห์ 1.5 ลิตร',
     price: 14,
     points: 5,
-    image: 'https://images.unsplash.com/photo-1560023907-5f339617ea30?auto=format&fit=crop&q=80&w=400',
+    image: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="%23f0f9ff"/><rect x="40" y="30" width="20" height="50" rx="3" fill="%23bae6fd"/><path d="M40,40 L60,40" stroke="%230284c7" stroke-width="4"/></svg>',
     category: 'เครื่องดื่ม',
   },
   {
@@ -105,7 +105,7 @@ const INITIAL_PRODUCTS: Product[] = [
     name: 'บะหมี่กึ่งสำเร็จรูป มาม่า',
     price: 7,
     points: 2,
-    image: 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&q=80&w=400',
+    image: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="%23fef2f2"/><rect x="30" y="30" width="40" height="40" rx="5" fill="%23fecaca"/><path d="M35,45 Q45,55 55,45 T65,45" stroke="%23ef4444" stroke-width="3" fill="none"/></svg>',
     category: 'อาหารแห้ง',
   },
   {
@@ -113,7 +113,7 @@ const INITIAL_PRODUCTS: Product[] = [
     name: 'นมสดจืด Meiji',
     price: 26,
     points: 8,
-    image: 'https://images.unsplash.com/photo-1550583724-125581cc255b?auto=format&fit=crop&q=80&w=400',
+    image: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="%23faf5ff"/><rect x="35" y="25" width="30" height="55" rx="2" fill="%23e9d5ff"/><polygon points="35,25 50,15 65,25" fill="%23c084fc"/></svg>',
     category: 'ของสด',
   },
 ];
@@ -121,11 +121,12 @@ const INITIAL_PRODUCTS: Product[] = [
 interface CartContextType {
   cart: CartItem[]; user: User | null; isLoading: boolean;
   products: Product[]; addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
+  deleteProduct: (productId: string) => Promise<void>;
   addToCart: (product: Product) => void; removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void; clearCart: () => void;
   totalCash: number; totalPoints: number; totalItems: number; userPoints: number;
   profileImage: string; login: (userData: User) => void; logout: () => void;
-  checkout: (deliveryMethod: 'pickup' | 'delivery') => Promise<{ success: boolean; message: string }>; updateProfileImage: (uri: string) => void;
+  checkout: (deliveryMethod: 'pickup' | 'delivery', paymentMethod: 'qr' | 'cod', pickupDetails?: string) => Promise<{ success: boolean; message: string; data?: any }>; updateProfileImage: (uri: string) => void;
   refreshUser: () => Promise<void>;
   fetchProducts: () => Promise<void>;
 }
@@ -138,7 +139,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isCartLoaded, setIsCartLoaded] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
-  const defaultProfile = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200';
+  const defaultProfile = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="%23e2e8f0"/><circle cx="50" cy="38" r="18" fill="%2394a3b8"/><path d="M20,80 C20,60 40,60 50,60 C60,60 80,60 80,80" fill="%2394a3b8"/></svg>';
   const [profileImage, setProfileImage] = useState(defaultProfile);
 
   // Update profileImage state whenever user changes
@@ -200,7 +201,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loadData = async () => {
       try {
-        await fetchProducts();
+        fetchProducts();
         const savedUser = await storage.getItem(USER_STORAGE_KEY);
         if (savedUser) {
           const parsedUser = JSON.parse(savedUser);
@@ -219,7 +220,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         console.warn('Persistence load failed', error);
         setIsCartLoaded(true);
       } finally {
-        setTimeout(() => setIsLoading(false), 300);
+        setIsLoading(false);
       }
     };
     loadData();
@@ -306,6 +307,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const deleteProduct = async (productId: string) => {
+    try {
+      if (!user?.token) {
+        Alert.alert('ผิดพลาด', 'คุณไม่มีสิทธิ์ลบสินค้า');
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/products/${productId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        await fetchProducts();
+      } else {
+        console.error('Server error deleting product:', result.message);
+        Alert.alert('ผิดพลาด', result.message || 'ไม่สามารถลบสินค้าได้');
+        throw new Error(result.message || 'Failed to delete product');
+      }
+    } catch (error) {
+      console.error('Delete product failed', error);
+      Alert.alert('ผิดพลาด', 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+      throw error;
+    }
+  };
+
   const addToCart = (product: Product) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === product.id);
@@ -329,7 +360,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
   const userPoints = user?.totalPoint || 0;
 
-  const checkout = async (deliveryMethod: 'pickup' | 'delivery', paymentMethod: 'qr' | 'cod') => {
+  const checkout = async (deliveryMethod: 'pickup' | 'delivery', paymentMethod: 'qr' | 'cod', pickupDetails?: string) => {
     if (!user || !user.token) {
       console.log('Checkout aborted: No user or token');
       return { success: false, message: 'กรุณาเข้าสู่ระบบ' };
@@ -341,6 +372,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         totalPoints,
         deliveryMethod,
         paymentMethod,
+        pickupDetails,
         items: cart.map(item => ({
           id: item.id,
           name: item.name,
@@ -436,7 +468,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider value={{
-      cart, user, isLoading, products, addProduct,
+      cart, user, isLoading, products, addProduct, deleteProduct,
       addToCart, removeFromCart, updateQuantity,
       clearCart, totalCash, totalPoints, totalItems, userPoints,
       profileImage, login, logout, checkout, updateProfileImage,

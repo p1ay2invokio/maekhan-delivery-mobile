@@ -5,17 +5,16 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { CartProvider } from '@/hooks/use-cart';
 import { GlobalSocketListener } from '@/components/global-socket-listener';
 import "../global.css"
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
+  const [loaded, error] = useFonts({
     'Kanit-Thin': require('../../assets/fonts/Kanit-Thin.ttf'),
     'Kanit-ExtraLight': require('../../assets/fonts/Kanit-ExtraLight.ttf'),
     'Kanit-Light': require('../../assets/fonts/Kanit-Light.ttf'),
@@ -28,12 +27,12 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    if (loaded || error) {
+      SplashScreen.hideAsync().catch(() => {});
     }
-  }, [loaded]);
+  }, [loaded, error]);
 
-  if (!loaded) {
+  if (!loaded && !error) {
     return null;
   }
 
@@ -42,7 +41,6 @@ export default function RootLayout() {
       <GlobalSocketListener />
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        <AnimatedSplashOverlay />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="login" />

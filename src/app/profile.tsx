@@ -2,7 +2,7 @@ import { StyleSheet, Pressable, ScrollView, Alert, View, Platform, ActivityIndic
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { SymbolView } from '@/components/symbol-view';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState, useCallback } from 'react';
 import { ThemedText } from '@/components/themed-text';
@@ -10,8 +10,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useCart } from '@/hooks/use-cart';
-
-const API_URL = 'http://192.168.1.34:3001';
+import { API_URL } from '@/constants/config';
 
 export default function ProfileScreen() {
   const theme = useTheme();
@@ -156,7 +155,7 @@ export default function ProfileScreen() {
               icon="headset" 
               label="ติดต่อ support" 
               color="#22c55e" 
-              onPress={() => Alert.alert('ติดต่อเจ้าหน้าที่', 'กรุณาติดต่อผ่าน Line: @membergrocery')}
+              onPress={() => Alert.alert('กรุณาติดต่อ', '097-295-5511')}
             />
             <MenuButton 
               icon="gearshape" 

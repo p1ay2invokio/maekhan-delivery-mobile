@@ -3,8 +3,7 @@ import { Alert } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { io } from 'socket.io-client';
 import { useCart } from '@/hooks/use-cart';
-
-const SOCKET_URL = 'http://192.168.1.34:3002';
+import { SOCKET_URL } from '@/constants/config';
 
 export function GlobalSocketListener() {
   const { user, refreshUser } = useCart();

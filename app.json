@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "my-app",
-    "slug": "my-app",
+    "name": "สะสมแต้ม",
+    "slug": "maekhangrocery",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "maekhangrocery",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "com.play21947.my-app",
+      "bundleIdentifier": "com.play21947.maekhangrocery",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "แอปพลิเคชันต้องการเข้าถึงคลังภาพเพื่อเปลี่ยนรูปโปรไฟล์ของคุณ",
         "NSCameraUsageDescription": "แอปพลิเคชันต้องการเข้าถึงกล้องเพื่อถ่ายรูปโปรไฟล์ของคุณ",
@@ -21,9 +21,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/playstore.png"
       },
       "config": {
         "googleMaps": {
@@ -36,7 +34,13 @@
         "android.permission.RECORD_AUDIO"
       ],
       "predictiveBackGestureEnabled": false,
-      "package": "com.play21947.myapp"
+      "package": "com.play21947.maekhangrocery",
+      "signingConfig": {
+        "storeFile": "./upload-key.keystore",
+        "storePassword": "123456",
+        "keyAlias": "upload",
+        "keyPassword": "123456"
+      }
     },
     "web": {
       "output": "static",
@@ -47,17 +51,16 @@
       [
         "react-native-maps",
         {
-          "iosGoogleMapsApiKey": "AIzaSyCVV4Ls8LCs1xC0MvKam7Xsf2kuPL28gNw"
+          "iosGoogleMapsApiKey": "AIzaSyCVV4Ls8LCs1xC0MvKam7Xsf2kuPL28gNw",
+          "androidGoogleMapsApiKey": "AIzaSyCAKERDq7wFdL1msHmBnlfw-7NHRDfqGRM"
         }
       ],
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "android": {
-            "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
-          }
+          "backgroundColor": "#E6F4FE",
+          "image": "./assets/images/playstore.png",
+          "imageWidth": 200
         }
       ],
       "expo-font",
@@ -78,6 +81,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1a13e45c-5235-4a33-aee5-c77962c54379"
+      }
     }
   }
 }

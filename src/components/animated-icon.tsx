@@ -1,13 +1,21 @@
 import { Image } from 'expo-image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
-import Animated, { Easing, Keyframe } from 'react-native-reanimated';
+import Animated, { Easing, Keyframe, runOnJS } from 'react-native-reanimated';
 
 const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
 const DURATION = 600;
 
 export function AnimatedSplashOverlay() {
   const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    // Fallback timer: ensure the overlay is dismissed even if Reanimated's callback fails to fire
+    const timer = setTimeout(() => {
+      setVisible(false);
+    }, DURATION + 150);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (!visible) return null;
 
@@ -35,15 +43,7 @@ export function AnimatedSplashOverlay() {
       entering={splashKeyframe.duration(DURATION).withCallback((finished) => {
         'worklet';
         if (finished) {
-          try {
-            const { scheduleOnRN } = require('react-native-worklets');
-            scheduleOnRN(setVisible, false);
-          } catch (e) {
-            // Fallback if worklets are not available
-            console.warn('Worklets not available, fallback to direct call');
-            // Note: In a real worklet this might fail if not scheduled, 
-            // but we're being defensive for the dev environment.
-          }
+          runOnJS(setVisible)(false);
         }
       })}
       style={styles.backgroundSolidColor}

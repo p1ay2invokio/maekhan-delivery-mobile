@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { FlatList, StyleSheet, Image, Pressable, Platform, Alert, TouchableOpacity, View, Text } from 'react-native';
+import { FlatList, StyleSheet, Image, Pressable, Platform, Alert, TouchableOpacity, View, Text, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { SymbolView } from '@/components/symbol-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
@@ -16,6 +16,7 @@ export default function CartScreen() {
   const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup');
   const [paymentMethod, setPaymentMethod] = useState<'qr' | 'cod'>('qr');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [pickupDetails, setPickupDetails] = useState('');
 
   const handleCheckout = async () => {
     if (cart.length === 0 || isProcessing) return;
@@ -35,7 +36,7 @@ export default function CartScreen() {
           return;
         }
       }
-      const result = await checkout(deliveryMethod, paymentMethod);
+      const result = await checkout(deliveryMethod, paymentMethod, pickupDetails);
       if (result.success && result.data) {
         if (paymentMethod === 'qr') {
           router.push({
@@ -53,7 +54,7 @@ export default function CartScreen() {
           router.replace('/order-history');
         }
       } else {
-        Alert.alert('ผิดพลาด', result.message || 'เกิดข้อผิดพลาดในการสั่งซื้อ');
+        Alert.alert('แต้มไม่เพียงพอ !', result.message || 'เกิดข้อผิดพลาดในการสั่งซื้อ');
       }
     } catch (error: any) {
       Alert.alert('ผิดพลาด', 'เกิดข้อผิดพลาด: ' + (error.message || 'Unknown error'));
@@ -93,9 +94,16 @@ export default function CartScreen() {
           </View>
           <View className='flex flex-row justify-between items-center'>
 
-            <View>
-              <Text className='font-[Kanit-Regular] text-green-600 text-2xl'>{(item.price).toFixed(2)} <Text className='text-sm text-gray-600'>บาท</Text></Text>
-              <Text className='font-[Kanit-Regular] text-[#f59e0b] text-2xl'>{item.points} P</Text>
+            <View className='flex gap-2'>
+              <Text className='font-[Kanit-Medium] translate-x-[2px] text-green-600 text-xl'>{(item.price)} บาท</Text>
+              <Text style={{
+                backgroundColor: '#fffbeb',
+                borderWidth: 1,
+                borderColor: '#fcd34d',
+                paddingHorizontal: 6,
+                paddingVertical: 0,
+                borderRadius: 6,
+              }} className='font-[Kanit-Medium] text-[#f59e0b] text-center text-xl'>{item.points} P</Text>
             </View>
 
 
@@ -260,6 +268,21 @@ export default function CartScreen() {
                     </View>
                   )}
 
+                  <View style={[styles.detailsInputContainer, { backgroundColor: theme.backgroundElement }]}>
+                    <TextInput
+                      style={[styles.detailsInput, { color: theme.text }]}
+                      placeholder={
+                        deliveryMethod === 'delivery'
+                          ? 'รายละเอียดการจัดส่ง (เช่น บ้านสีเขียว โทรแจ้งก่อนส่ง ฝากนิติ)'
+                          : 'รายละเอียดการรับสินค้า (เช่น เวลา หรือผู้รับแทน)'
+                      }
+                      placeholderTextColor={theme.textSecondary}
+                      value={pickupDetails}
+                      onChangeText={setPickupDetails}
+                      multiline
+                    />
+                  </View>
+
                   {/* ── Payment Method Section ── */}
                   <ThemedText style={[styles.sectionLabel, { marginTop: Spacing.four }]}>วิธีชำระเงิน</ThemedText>
 
@@ -316,7 +339,7 @@ export default function CartScreen() {
                       </View>
                       <View style={styles.summaryDividerV} />
                       <View style={styles.summaryItem}>
-                        <ThemedText style={styles.summaryLabel}>แต้มที่ได้</ThemedText>
+                        <ThemedText style={styles.summaryLabel}>แต้มที่ใช้</ThemedText>
                         <ThemedText style={styles.summaryValueGold}>{totalPoints.toLocaleString()} P</ThemedText>
                       </View>
                     </View>
@@ -637,5 +660,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#22c55e',
     fontWeight: '600',
+  },
+  detailsInputContainer: {
+    borderRadius: 14,
+    padding: Spacing.three,
+    marginTop: Spacing.two,
+    borderWidth: 1,
+    borderColor: 'rgba(128,128,128,0.1)',
+  },
+  detailsInput: {
+    fontSize: 14,
+    minHeight: 50,
+    textAlignVertical: 'top',
   },
 });

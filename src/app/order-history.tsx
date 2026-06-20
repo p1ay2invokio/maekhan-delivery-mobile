@@ -7,8 +7,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useCart } from '@/hooks/use-cart';
-
-const API_URL = 'http://192.168.1.34:3001';
+import { API_URL } from '@/constants/config';
 
 interface OrderItem {
   id: string;
@@ -27,6 +26,7 @@ interface Order {
   paymentStatus: string;
   deliveryMethod: string;
   paymentMethod: string;
+  pickupDetails?: string;
   items: OrderItem[];
 }
 
@@ -186,6 +186,14 @@ export default function OrderHistoryScreen() {
           </ThemedText>
         </View>
 
+        {item.pickupDetails ? (
+          <View style={styles.detailsRow}>
+            <ThemedText style={styles.detailsText} themeColor="textSecondary">
+              รายละเอียดเพิ่มเติม: {item.pickupDetails}
+            </ThemedText>
+          </View>
+        ) : null}
+
         <View style={styles.orderContent}>
           {item.items.map((i, index) => (
             <View key={`${i.id}-${index}`} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
@@ -226,7 +234,7 @@ export default function OrderHistoryScreen() {
             
             {item.paymentStatus === 'unpaid' && item.status === 'pending' && item.paymentMethod !== 'cod' && (
               <ThemedText style={{ color: '#22c55e', fontSize: 14, fontWeight: 'bold' }}>
-                ชำระเงิน >
+                ชำระเงิน {'>'}
               </ThemedText>
             )}
           </View>
@@ -328,7 +336,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: Spacing.four,
-    paddingBottom: Spacing.eight,
+    paddingBottom: Spacing.six,
     gap: Spacing.three,
     flexGrow: 1,
   },
@@ -420,5 +428,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: 100,
-  }
+  },
+  detailsRow: {
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    padding: Spacing.two,
+    borderRadius: 8,
+    marginTop: -Spacing.one,
+  },
+  detailsText: {
+    fontSize: 13,
+  },
 });

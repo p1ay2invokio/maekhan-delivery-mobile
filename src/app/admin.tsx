@@ -1,6 +1,6 @@
 import { StyleSheet, Pressable, ScrollView, View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SymbolView } from 'expo-symbols';
+import { SymbolView } from '@/components/symbol-view';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ThemedText } from '@/components/themed-text';
@@ -8,8 +8,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useCart } from '@/hooks/use-cart';
-
-const API_URL = 'http://192.168.1.34:3001';
+import { API_URL } from '@/constants/config';
 
 const ADMIN_ACTIONS = [
   { id: '1', title: 'จัดการสินค้า', icon: 'cart.badge.plus', color: '#22c55e', route: '/admin-products' },

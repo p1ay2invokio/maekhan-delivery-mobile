@@ -1,7 +1,7 @@
-import { StyleSheet, Image, Pressable, ScrollView, View, Dimensions } from 'react-native';
+import { StyleSheet, Image, Pressable, ScrollView, View, Dimensions, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SymbolView } from 'expo-symbols';
+import { SymbolView } from '@/components/symbol-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
@@ -12,11 +12,36 @@ const { width } = Dimensions.get('window');
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams();
-  const { products, addToCart } = useCart();
+  const { products, addToCart, user, deleteProduct } = useCart();
   const theme = useTheme();
   const router = useRouter();
 
   const product = products.find((p) => p.id === id);
+
+  const handleDelete = () => {
+    if (!product) return;
+    Alert.alert(
+      'ยืนยันการลบสินค้า',
+      `คุณต้องการลบสินค้า "${product.name}" ใช่หรือไม่?`,
+      [
+        { text: 'ยกเลิก', style: 'cancel' },
+        { 
+          text: 'ลบ', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteProduct(product.id);
+              Alert.alert('สำเร็จ', 'ลบสินค้าเรียบร้อยแล้ว', [
+                { text: 'ตกลง', onPress: () => router.back() }
+              ]);
+            } catch (err) {
+              console.error(err);
+            }
+          }
+        }
+      ]
+    );
+  };
 
   if (!product) {
     return (
@@ -37,7 +62,13 @@ export default function ProductDetailScreen() {
           <ThemedText style={styles.headerTitle} numberOfLines={1}>
             รายละเอียดสินค้า
           </ThemedText>
-          <View style={{ width: 40 }} />
+          {user?.role === 1 ? (
+            <Pressable onPress={handleDelete} style={styles.deleteHeaderButton}>
+              <SymbolView name="trash" size={20} tintColor="#ef4444" />
+            </Pressable>
+          ) : (
+            <View style={{ width: 40 }} />
+          )}
         </ThemedView>
 
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -213,5 +244,13 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  deleteHeaderButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
   },
 });

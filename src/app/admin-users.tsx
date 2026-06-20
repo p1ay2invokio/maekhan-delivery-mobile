@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Pressable, View, FlatList, TextInput, ActivityIndicator, Image } from 'react-native';
+import { StyleSheet, Pressable, View, FlatList, TextInput, ActivityIndicator, Image, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useCart } from '@/hooks/use-cart';
-
-const API_URL = 'http://192.168.1.34:3001';
+import { useCart, User } from '@/hooks/use-cart';
+import { API_URL } from '@/constants/config';
 // ... (interfaces)
 export default function AdminUsersScreen() {
   const theme = useTheme();
@@ -16,7 +15,19 @@ export default function AdminUsersScreen() {
   const { user } = useCart();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchUsers();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     if (!user || user.role !== 1) {
@@ -66,7 +77,14 @@ export default function AdminUsersScreen() {
         </View>
       )}
       <View style={styles.userInfo}>
-        <ThemedText style={styles.userName}>{item.name || 'ไม่มีชื่อ'}</ThemedText>
+        <View style={styles.nameRow}>
+          <ThemedText style={styles.userName}>{item.name || 'ไม่มีชื่อ'}</ThemedText>
+          {item.mooban ? (
+            <View style={[styles.moobanBadge, { backgroundColor: theme.backgroundSelected }]}>
+              <ThemedText themeColor="textSecondary" style={styles.moobanBadgeText}>{item.mooban}</ThemedText>
+            </View>
+          ) : null}
+        </View>
         <ThemedText themeColor="textSecondary" style={styles.userPhone}>{item.phoneNumber}</ThemedText>
       </View>
       <View style={styles.pointsInfo}>
@@ -108,6 +126,14 @@ export default function AdminUsersScreen() {
             keyExtractor={item => item.phoneNumber}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={[theme.primary]}
+                tintColor={theme.primary}
+              />
+            }
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <ThemedText themeColor="textSecondary">ไม่พบข้อมูลสมาชิก</ThemedText>
@@ -148,7 +174,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: Spacing.four,
-    paddingBottom: Spacing.eight,
+    paddingBottom: Spacing.six,
     gap: Spacing.two,
   },
   userCard: {
@@ -198,5 +224,21 @@ const styles = StyleSheet.create({
   emptyContainer: {
     paddingTop: 100,
     alignItems: 'center',
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  moobanBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    alignSelf: 'center',
+  },
+  moobanBadgeText: {
+    fontSize: 11,
+    fontWeight: '500',
   },
 });
