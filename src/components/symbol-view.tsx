@@ -32,6 +32,13 @@ const ICON_MAPPING: Record<string, string> = {
   'lock.shield': 'security',
   'clock.fill': 'schedule',
   'exclamationmark.circle.fill': 'error',
+  'phone.fill': 'phone',
+  'phone': 'phone',
+  'person.fill': 'person',
+  'person': 'person',
+  'arrow.right': 'arrow_forward',
+  'sparkles': 'auto_awesome',
+  'gift.fill': 'card_giftcard',
 };
 
 type SymbolViewProps = React.ComponentProps<typeof ExpoSymbolView>;

@@ -10,6 +10,7 @@
     "ios": {
       "bundleIdentifier": "com.play21947.maekhangrocery",
       "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryUsageDescription": "แอปพลิเคชันต้องการเข้าถึงคลังภาพเพื่อเปลี่ยนรูปโปรไฟล์ของคุณ",
         "NSCameraUsageDescription": "แอปพลิเคชันต้องการเข้าถึงกล้องเพื่อถ่ายรูปโปรไฟล์ของคุณ",
         "NSLocationWhenInUseUsageDescription": "แอปพลิเคชันต้องการเข้าถึงตำแหน่งของคุณเพื่อช่วยระบุที่อยู่จัดส่ง"
@@ -34,13 +35,7 @@
         "android.permission.RECORD_AUDIO"
       ],
       "predictiveBackGestureEnabled": false,
-      "package": "com.play21947.maekhangrocery",
-      "signingConfig": {
-        "storeFile": "./upload-key.keystore",
-        "storePassword": "123456",
-        "keyAlias": "upload",
-        "keyPassword": "123456"
-      }
+      "package": "com.play21947.maekhangrocery"
     },
     "web": {
       "output": "static",
