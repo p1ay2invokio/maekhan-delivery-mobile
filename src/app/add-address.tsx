@@ -74,6 +74,13 @@ export default function AddAddressScreen() {
       console.log('Permission status:', status);
       
       if (status !== 'granted') {
+        if (Platform.OS === 'web') {
+          // Alert is a no-op on web; open the map centred on the shop instead
+          setMapRegion({ ...SHOP_CENTER, latitudeDelta: 0.01, longitudeDelta: 0.01 });
+          setShowMap(true);
+          setIsLoadingLocation(false);
+          return;
+        }
         Alert.alert('คำเตือน', 'กรุณาอนุญาตให้แอปเข้าถึงตำแหน่งของคุณเพื่อใช้งานแผนที่');
         setIsLoadingLocation(false);
         return;
@@ -99,13 +106,50 @@ export default function AddAddressScreen() {
       fetchAddressFromCoords(location.coords.latitude, location.coords.longitude);
     } catch (error) {
       console.error('Get location failed:', error);
+      if (Platform.OS === 'web') {
+        setMapRegion({ ...SHOP_CENTER, latitudeDelta: 0.01, longitudeDelta: 0.01 });
+      }
       setShowMap(true);
     } finally {
       setIsLoadingLocation(false);
     }
   };
 
+  // Web: reverse geocode with OpenStreetMap Nominatim (no API key, max 1 req/sec)
+  const fetchAddressFromNominatim = async (latitude: number, longitude: number) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&accept-language=th&addressdetails=1`
+      );
+      const data = await response.json();
+      if (!data || data.error) return;
+
+      const a = data.address || {};
+      setCurrentAddress(data.display_name || '');
+
+      const extractedSubDistrict = a.suburb || a.quarter || a.village || a.hamlet || a.neighbourhood || '';
+      const extractedDistrict = a.city_district || a.county || a.town || a.municipality || a.city || '';
+      const extractedProvince = a.province || a.state || (a.city && a.city !== extractedDistrict ? a.city : '') || '';
+      const extractedAddress =
+        [a.house_number, a.road].filter(Boolean).join(' ') ||
+        data.name ||
+        (data.display_name || '').split(',')[0] ||
+        '';
+
+      setSubDistrict(extractedSubDistrict.replace('แขวง', '').replace('ตำบล', '').trim());
+      setDistrict(extractedDistrict.replace('เขต', '').replace('อำเภอ', '').trim());
+      setProvince(extractedProvince.replace('จังหวัด', '').trim());
+      setPostalCode(a.postcode || '');
+      setAddress(extractedAddress.trim());
+    } catch (error) {
+      console.error('Nominatim reverse geocode failed:', error);
+    }
+  };
+
   const fetchAddressFromCoords = async (latitude: number, longitude: number) => {
+    if (Platform.OS === 'web') {
+      return fetchAddressFromNominatim(latitude, longitude);
+    }
     try {
       const API_KEY = 'AIzaSyCVV4Ls8LCs1xC0MvKam7Xsf2kuPL28gNw';
       const response = await fetch(

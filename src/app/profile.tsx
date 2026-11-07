@@ -48,6 +48,12 @@ export default function ProfileScreen() {
   };
 
   const handleImagePress = () => {
+    // On web, Alert.alert with buttons is a no-op in react-native-web,
+    // so open the browser file picker directly.
+    if (Platform.OS === 'web') {
+      pickImage();
+      return;
+    }
     Alert.alert(
       'เปลี่ยนรูปโปรไฟล์',
       'กรุณาเลือกช่องทาง',

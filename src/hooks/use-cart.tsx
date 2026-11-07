@@ -417,19 +417,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateProfileImage = async (uri: string) => {
     if (!user || !user.token) return;
 
+    // On web, the picker returns a data:/blob: URI, which must be converted to a Blob
+    let webBlob: Blob | null = null;
+    if (Platform.OS === 'web') {
+      try {
+        webBlob = await (await fetch(uri)).blob();
+      } catch (error) {
+        console.error('Failed to read image on web', error);
+        Alert.alert('ผิดพลาด', 'ไม่สามารถอ่านไฟล์รูปภาพได้');
+        return;
+      }
+    }
+
     return new Promise<void>((resolve, reject) => {
       try {
         const formData = new FormData();
-        const filename = uri.split('/').pop() || 'profile.jpg';
-        const extension = filename.split('.').pop()?.toLowerCase();
-        let type = 'image/jpeg';
-        if (extension === 'png') type = 'image/png';
 
-        formData.append('image', {
-          uri: uri,
-          name: filename,
-          type: type,
-        } as any);
+        if (webBlob) {
+          const type = webBlob.type || 'image/jpeg';
+          const ext = type === 'image/png' ? 'png' : 'jpg';
+          formData.append('image', webBlob, `profile.${ext}`);
+        } else {
+          const filename = uri.split('/').pop() || 'profile.jpg';
+          const extension = filename.split('.').pop()?.toLowerCase();
+          let type = 'image/jpeg';
+          if (extension === 'png') type = 'image/png';
+
+          formData.append('image', {
+            uri: uri,
+            name: filename,
+            type: type,
+          } as any);
+        }
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `${API_URL}/api/user/profile-image`);
